@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="com.qnx.qcc.toolChain.1683334161">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.qnx.qcc.toolChain.1683334161" moduleId="org.eclipse.cdt.core.settings" name="QNX QCC">
+				<externalSettings>
+					<externalSetting>
+						<entry flags="RESOLVED" kind="includePath" name="C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi/hc"/>
+						<entry flags="RESOLVED" kind="includePath" name="C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi"/>
+						<entry flags="RESOLVED" kind="includePath" name="C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi/include"/>
+					</externalSetting>
+				</externalSettings>
+				<extensions>
+					<extension id="com.qnx.tools.ide.qde.core.QDEBynaryParser" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="ti-am335x-beaglebone" buildProperties="" description="" id="com.qnx.qcc.toolChain.1683334161" name="QNX QCC" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="com.qnx.qcc.toolChain.1683334161.570349769" name="/" resourcePath="">
+						<toolChain id="com.qnx.qcc.toolChain.1024775533" name="QNX QCC" superClass="com.qnx.qcc.toolChain">
+							<option id="com.qnx.qcc.option.os.865065531" name="Target OS:" superClass="com.qnx.qcc.option.os"/>
+							<option id="com.qnx.qcc.option.cpu.1538347097" name="Target CPU:" superClass="com.qnx.qcc.option.cpu"/>
+							<option id="com.qnx.qcc.option.compiler.825600793" name="Compiler:" superClass="com.qnx.qcc.option.compiler"/>
+							<option id="com.qnx.qcc.option.runtime.152929513" name="C++ Runtime:" superClass="com.qnx.qcc.option.runtime"/>
+							<option id="com.qnx.qcc.option.buildtype.327107319" name="Build Type:" superClass="com.qnx.qcc.option.buildtype"/>
+							<targetPlatform archList="all" binaryParser="com.qnx.tools.ide.qde.core.QDEBynaryParser" id="com.qnx.qcc.targetPlatform.370230727" osList="all" superClass="com.qnx.qcc.targetPlatform"/>
+							<builder id="com.qnx.qcc.toolChain.1683334161.1084910768" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
+							<tool id="com.qnx.qcc.tool.compiler.2014230583" name="QCC Compiler" superClass="com.qnx.qcc.tool.compiler">
+								<option id="com.qnx.qcc.option.compiler.optlevel.42451781" name="Optimization Level" superClass="com.qnx.qcc.option.compiler.optlevel" useByScannerDiscovery="false" value="com.qnx.qcc.option.compiler.optlevel.0" valueType="enumerated"/>
+								<option id="com.qnx.qcc.option.compiler.includePath.219991207" name="Include Directories (-I)" superClass="com.qnx.qcc.option.compiler.includePath" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi/hc}&quot;"/>
+								</option>
+								<inputType id="com.qnx.qcc.inputType.compiler.1566231817" superClass="com.qnx.qcc.inputType.compiler"/>
+							</tool>
+							<tool id="com.qnx.qcc.tool.assembler.1757206633" name="QCC Assembler" superClass="com.qnx.qcc.tool.assembler">
+								<option id="com.qnx.qcc.option.assembler.includePath.1006988621" name="Include Directories (-I)" superClass="com.qnx.qcc.option.assembler.includePath" valueType="includePath">
+									<listOptionValue builtIn="false" value="C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi/hc"/>
+									<listOptionValue builtIn="false" value="C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi"/>
+									<listOptionValue builtIn="false" value="C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi/include"/>
+								</option>
+								<inputType id="com.qnx.qcc.inputType.assembler.654287167" superClass="com.qnx.qcc.inputType.assembler"/>
+							</tool>
+							<tool id="com.qnx.qcc.tool.linker.863088477" name="QCC Linker" superClass="com.qnx.qcc.tool.linker"/>
+							<tool id="com.qnx.qcc.tool.archiver.432801035" name="QCC Archiver" superClass="com.qnx.qcc.tool.archiver"/>
+						</toolChain>
+					</folderInfo>
+					<folderInfo id="com.qnx.qcc.toolChain.1683334161.1827336900" name="/" resourcePath="src/hardware/devnp">
+						<toolChain id="com.qnx.qcc.toolChain.262924361" name="QNX QCC" superClass="com.qnx.qcc.toolChain" unusedChildren="">
+							<option id="com.qnx.qcc.option.os.865065531.1719127095" name="Target OS:" superClass="com.qnx.qcc.option.os.865065531"/>
+							<option id="com.qnx.qcc.option.cpu.1538347097.1411388774" name="Target CPU:" superClass="com.qnx.qcc.option.cpu.1538347097"/>
+							<option id="com.qnx.qcc.option.compiler.825600793.1011877398" name="Compiler:" superClass="com.qnx.qcc.option.compiler.825600793"/>
+							<option id="com.qnx.qcc.option.runtime.152929513.873136854" name="C++ Runtime:" superClass="com.qnx.qcc.option.runtime.152929513"/>
+							<option id="com.qnx.qcc.option.buildtype.327107319.2134604547" name="Build Type:" superClass="com.qnx.qcc.option.buildtype.327107319"/>
+							<targetPlatform archList="all" binaryParser="com.qnx.tools.ide.qde.core.QDEBynaryParser" id="com.qnx.qcc.targetPlatform" osList="all" superClass="com.qnx.qcc.targetPlatform"/>
+							<tool id="com.qnx.qcc.tool.compiler.1954591099" name="QCC Compiler" superClass="com.qnx.qcc.tool.compiler.2014230583">
+								<inputType id="com.qnx.qcc.inputType.compiler.645744181" superClass="com.qnx.qcc.inputType.compiler"/>
+							</tool>
+							<tool id="com.qnx.qcc.tool.assembler.1353164336" name="QCC Assembler" superClass="com.qnx.qcc.tool.assembler.1757206633">
+								<option id="com.qnx.qcc.option.assembler.includePath.1921149881" name="Include Directories (-I)" superClass="com.qnx.qcc.option.assembler.includePath" valueType="includePath">
+									<listOptionValue builtIn="false" value="C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi/hc"/>
+									<listOptionValue builtIn="false" value="C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi/include"/>
+									<listOptionValue builtIn="false" value="C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi"/>
+								</option>
+								<inputType id="com.qnx.qcc.inputType.assembler.2071416873" superClass="com.qnx.qcc.inputType.assembler"/>
+							</tool>
+							<tool id="com.qnx.qcc.tool.linker.1993196855" name="QCC Linker" superClass="com.qnx.qcc.tool.linker.863088477"/>
+							<tool id="com.qnx.qcc.tool.archiver.682162602" name="QCC Archiver" superClass="com.qnx.qcc.tool.archiver.432801035"/>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="ti-am335x-beaglebone.null.1476541895" name="ti-am335x-beaglebone"/>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="com.qnx.qcc.toolChain.1683334161">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.qnx.tools.ide.qde.managedbuilder.core.qccScannerInfo"/>
+		</scannerConfigBuildInfo>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="QNX QCC">
+			<resource resourceType="PROJECT" workspacePath="/ti-am335x-edlcd"/>
+		</configuration>
+	</storageModule>
+	<storageModule moduleId="com.qnx.tools.ide.qde.core.settings">
+		<dependencyChecking mode="ALL"/>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+		<buildTargets>
+			<target name="clean" path="src/hardware/etfs" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildTarget>clean</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="install" path="src/hardware/etfs" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildTarget>install</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="wt512ram_edlcd" path="images" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildTarget>wt512ram_edlcd</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="sdio_library" path="src/hardware/omap_sdiodra.2019-11-19" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments/>
+				<buildTarget>sdio_library</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="clean" path="src/hardware/startup" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildTarget>clean</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+			<target name="install" path="src/hardware/startup" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildTarget>install</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+		</buildTargets>
+	</storageModule>
+</cproject>

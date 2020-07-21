@@ -1,0 +1,25 @@
+log.o: \
+ C:/Users/a16023/ide-7.0-workspace/ti-am335x-edlcd/src/hardware/devnp/dm814x/sdiodi/log.c \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/stdio.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/platform.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/compiler_gnu.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/cdefs.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/arm/platform.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/_pack64.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/target_nto.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/_packpop.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/yvals.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/stdarg.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/slog.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/slogcodes.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/pthread.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/cpuinline.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/arm/cpuinline.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/time.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sched.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/types.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/storage.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/siginfo.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/sys/inline_mutex.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/errno.h \
+ C:/Users/a16023/qnx700/target/qnx7/usr/include/arm/smpxchg.h
