@@ -1,0 +1,8 @@
+STATE=Experimental
+INSTALLDIR=armle-v7/lib/dll/
+INSTALLNAME=devnp-wilc-am335x.so
+NAME=devnp-wilc-am335x.so
+USER=A16023
+HOST=HKD-LT-A16023
+DATE=2020/12/23-18:22:45-CST
+DESCRIPTION=wilc wifi driver
