@@ -87,7 +87,7 @@ int sdio_event_get(void *hdl, int wait)
 	sdio_ext_t	*sdio = (sdio_ext_t *)hdl;
 	uint64_t	tmo;
 	int			ret = SDIO_SUCCESS;
-
+#if 0
 	if (sdio->pend_srv) {
 		atomic_sub(&sdio->pend_srv, 1);
 		return (SDIO_SUCCESS);
@@ -105,7 +105,8 @@ int sdio_event_get(void *hdl, int wait)
 
 	/* No pending event, wait */
 
-
+#endif
+	sdio->card_intr = 1;
 
 	//if (sdio->card_intr > 1)
 	//{
@@ -117,7 +118,9 @@ int sdio_event_get(void *hdl, int wait)
 		pthread_sleepon_lock();
 		sdio->ienable(sdio->hchdl, SDIO_INTR_SDIO, 1);
 		//slogf(99,1,"[%s] log1", __FUNCTION__);
-		if (pthread_sleepon_timedwait(&sdio->card_intr, tmo) != EOK) {
+		//fprintf(stderr,"[%s] log1", __FUNCTION__);
+		if (pthread_sleepon_timedwait(&sdio->card_intr, 1 * 1000 * 1000) != EOK) {
+		//if (pthread_sleepon_wait(&sdio->card_intr) != EOK) {
 			sdio->ienable(sdio->hchdl, SDIO_INTR_SDIO, 0);
 			pthread_sleepon_unlock();
 			ret = SDIO_FAILURE;

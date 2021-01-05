@@ -776,7 +776,7 @@ static int omap3_block_size(void *ext, int blksz)
 
 	omap3->blksz = blksz;
 	out32(omap3->mmc_base + OMAP3_MMCHS_BLK, omap3->blksz);
-	delay(10);
+	///delay(10);
 
 	return (MMC_SUCCESS);
 }

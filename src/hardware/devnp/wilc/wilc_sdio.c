@@ -550,7 +550,12 @@ static int wilc_sdio_cmd53(sdio_ext_t *sdio, uint8_t fn, struct sdio_cmd53 *cmd)
 	uint32_t block_cnt;
 	//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] In\n", __func__);
 	//block_size = (cmd->block_mode == BLOCK_MODE) ? cmd->block_size: 1;
+	struct timespec	tv_start, tv_end, tv_temp;
+	uint32_t	tv_s_diff;
+	long	tv_ns_diff;
 
+	//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+	//fprintf(stderr,"[%s] 1 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
 	if (cmd->block_mode)
 	{
 		//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log1\n", __func__);
@@ -565,6 +570,8 @@ static int wilc_sdio_cmd53(sdio_ext_t *sdio, uint8_t fn, struct sdio_cmd53 *cmd)
 		block_size = cmd->count;
 		sdio->block_size(sdio->hchdl, block_size);
 	}
+	//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+	//fprintf(stderr,"[%s] 2 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
 	//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log3\n", __func__);
 	if (cmd->read_write) {  /* write */
 		//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log5\n", __func__);
@@ -590,8 +597,18 @@ static int wilc_sdio_cmd53(sdio_ext_t *sdio, uint8_t fn, struct sdio_cmd53 *cmd)
 		///printf("DEBUG1, block_size = %d, cmd->count = %d\r\n", block_size, block_cnt);
 
 		///sdio->block_size(sdio->hchdl, cmd->count);
+		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+		//fprintf(stderr,"[%s] 3 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
 		ret = sdio_read_iomem_v1(sdio, cmd->function, cmd->address,
 								0, block_cnt, block_size, (void *)cmd->buffer, 0);
+		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+		//fprintf(stderr,"[%s] 4 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
+		//clock_gettime(CLOCK_MONOTONIC, &tv_end);
+		//tv_ns_diff = tv_end.tv_nsec - tv_start.tv_nsec;
+		//tv_s_diff = tv_end.tv_sec - tv_start.tv_sec;
+
+		//fprintf(stderr,"[%s] tv_s_diff = %d, tv_ns_diff = %ld, block_cnt=0x%x, block_size=0x%x\n", __func__, tv_s_diff, tv_ns_diff, block_cnt, block_size);
+
 		//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s_log_r] addr=0x%x, block_cnt=0x%x, block_size=0x%x, data=0x%x \n", __func__,cmd->address,block_cnt, block_size, cmd->buffer[0]);
 	}
 
@@ -1078,6 +1095,13 @@ static int sdio_read(struct wilc_dev *wilc, uint32_t addr, uint8_t *buf, uint32_
 	struct sdio_cmd53 cmd;
 	int nblk, nleft, ret;
 
+	struct timespec	tv_start, tv_end, tv_temp;
+	uint32_t	tv_s_diff;
+	long	tv_ns_diff;
+
+	//clock_gettime(CLOCK_MONOTONIC, &tv_start);
+	//fprintf(stderr,"[%s] 1 sec = %d, nsec = %ld\n", __func__, tv_start.tv_sec, tv_start.tv_nsec);
+
 	cmd.read_write = 0;
 	if (addr > 0) {
 		/**
@@ -1111,8 +1135,9 @@ static int sdio_read(struct wilc_dev *wilc, uint32_t addr, uint8_t *buf, uint32_
 
 	nblk = size / block_size;
 	nleft = size % block_size;
-
-	if (nblk > 0) {
+	//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+	//	fprintf(stderr,"[%s] 2 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
+	if (nblk > 1) {
 		cmd.block_mode = 1;
 		cmd.increment = 1;
 		cmd.count = nblk;
@@ -1122,16 +1147,50 @@ static int sdio_read(struct wilc_dev *wilc, uint32_t addr, uint8_t *buf, uint32_
 			if (!sdio_set_func0_csa_address(wilc->sdio, 0, addr))
 				goto fail;
 		}
+		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+		//	fprintf(stderr,"[%s] 3 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
 		ret = wilc_sdio_cmd53(wilc->sdio, 0, &cmd);
 		if (ret) {
 			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Failed cmd53 [%x], block read...\n", __func__, addr);
 			goto fail;
 		}
+		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+		//	fprintf(stderr,"[%s] 4 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
 		if (addr > 0)
 			addr += nblk * block_size;
 		buf += nblk * block_size;
 	}       /* if (nblk > 0) */
+	// specific fix for stability issue, issue exist if size is >512 and < 1024
+	// To Do: Fix this SDIO related issue
+	else if (nblk == 1)
+	{
+		cmd.block_mode = 0;
+		cmd.increment = 1;
+		cmd.count = block_size -1;
+		cmd.buffer = buf;
+		cmd.block_size = block_size;
+		if (addr > 0) {
+			if (!sdio_set_func0_csa_address(wilc->sdio, 0, addr))
+				goto fail;
+		}
+		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+		//	fprintf(stderr,"[%s] 3 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
+		ret = wilc_sdio_cmd53(wilc->sdio, 0, &cmd);
+		if (ret) {
+			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Failed cmd53 [%x], block read...\n", __func__, addr);
+			goto fail;
+		}
+		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+		//	fprintf(stderr,"[%s] 4 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
 
+		if (addr > 0)
+			addr += nblk * block_size -1;
+		buf += nblk * block_size -1;
+		nleft += 1;
+	}
+
+	//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+	//fprintf(stderr,"[%s] 5 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
 	if (nleft > 0) {
 		cmd.block_mode = 0;
 		cmd.increment = 1;
@@ -1144,12 +1203,20 @@ static int sdio_read(struct wilc_dev *wilc, uint32_t addr, uint8_t *buf, uint32_
 			if (!sdio_set_func0_csa_address(wilc->sdio, 0, addr))
 				goto fail;
 		}
+		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
+		//	fprintf(stderr,"[%s] 6 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
 		ret = wilc_sdio_cmd53(wilc->sdio, 0, &cmd);
 		if (ret) {
 			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Failed cmd53 [%x], bytes read...\n", __func__, addr);
 			goto fail;
 		}
 	}
+	//clock_gettime(CLOCK_MONOTONIC, &tv_end);
+	//tv_ns_diff = tv_end.tv_nsec - tv_start.tv_nsec;
+	//tv_s_diff = tv_end.tv_sec - tv_start.tv_sec;
+
+	//fprintf(stderr,"[%s] tv_s_diff = %d, tv_ns_diff = %ld, size = %d\n", __func__, tv_s_diff, tv_ns_diff, size);
+	//fprintf(stderr,"[%s] 7 sec = %d, nsec = %ld\n", __func__, tv_end.tv_sec, tv_end.tv_nsec);
 	//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Out\n", __func__);
 	return 1;
 

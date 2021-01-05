@@ -930,11 +930,13 @@ int wilc_init_host_int(struct wilc_vif *vif)
 
 	///slogf(_SLOGC_NETWORK, _SLOG_ERROR,"Host[%p][%p]\n", net, net->ieee80211_ptr);
 
-
-	SIGEV_THREAD_INIT(&priv->eap_buff_timer_event, eap_buff_timeout, priv, 0);
-	timer_create(CLOCK_REALTIME, &priv->eap_buff_timer_event, &priv->eap_buff_timer);
+	fprintf(stderr, "[%s] create timer\n", __func__);
+	SIGEV_THREAD_INIT(&priv->eap_buff_timer_event, eap_buff_timeout, vif, 0);
+	if (timer_create(CLOCK_REALTIME, &priv->eap_buff_timer_event, &priv->eap_buff_timer) == -1)
+	{
+		fprintf(stderr, "[%s] create timer fail\n", __func__);
+	}
 	//setup_timer(&priv->eap_buffer_eventr, eap_buff_timeout, 0);
-
 
 	vif->p2p_listen_state = false;
 

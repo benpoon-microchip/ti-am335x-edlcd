@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <io-pkt/quiesce.h>
 #include <io-pkt/nw_thread.h>
+#include <sys-nto/bpfilter.h>
 #include "wilc_wfi_netdevice.h"
 #include "workqueue.h"
 #include "etherdevice.h"
@@ -44,7 +45,7 @@ void wilc_mac_indicate(struct wilc_dev *wilc)
 void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 		       u32 pkt_offset, u8 status)
 {
-	//slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] In, size = %d pkt_offset = %d \n", __func__, size, pkt_offset);
+	slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] In, size = %d pkt_offset = %d \n", __func__, size, pkt_offset);
 	//fprintf(stderr,"[%s] In, size = %d pkt_offset = %d \n", __func__, size, pkt_offset);
 	unsigned int frame_len = 0;
 	//int stats;
@@ -64,6 +65,48 @@ void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 	priv = &vif->priv;
 	wilc = vif->wilc;
 
+	frame_len = size;
+	buff_to_send = buff;
+
+	//fprintf(stderr,"[%s] In, size = %d buff_to_send = 0x%x 0x%x, status = %d vif->iftype = %d\n", __func__, size, buff_to_send[12], buff_to_send[13], status, vif->iftype);
+	if (status == PKT_STATUS_NEW && buff_to_send[12] == 0x88 &&
+	   buff_to_send[13] == 0x8e &&
+	   (vif->iftype == WILC_STATION_MODE ||
+		vif->iftype == WILC_CLIENT_MODE) &&
+	   ether_addr_equal_unaligned(priv->associated_bss, null_bssid)) {
+
+		fprintf(stderr, "[%s] Buffer EAPOL packet\n", __func__);
+		if (!priv->buffered_eap) {
+			priv->buffered_eap = create_ptr(sizeof(struct
+											wilc_buffered_eap));
+			if (priv->buffered_eap) {
+				priv->buffered_eap->buff = NULL;
+				priv->buffered_eap->size = 0;
+				priv->buffered_eap->pkt_offset = 0;
+			} else {
+				PRINT_ER(vif->ndev,
+					 "failed to alloc buffered_eap\n");
+				return;
+			}
+		} else {
+			free_ptr(priv->buffered_eap->buff);
+		}
+		priv->buffered_eap->buff = create_ptr(size + pkt_offset);
+		priv->buffered_eap->size = size;
+		priv->buffered_eap->pkt_offset = pkt_offset;
+		memcpy(priv->buffered_eap->buff, buff -
+			   pkt_offset, size + pkt_offset);
+
+		//mod_timer(&priv->eap_buff_timer, (jiffies +
+		//	  msecs_to_jiffies(10)));
+		setting.it_value.tv_sec = 0;
+		setting.it_value.tv_nsec = 10000000;
+		setting.it_interval.tv_sec = 0;
+		setting.it_interval.tv_nsec = 0;
+		fprintf(stderr, "[%s] Buffer EAPOL packet log2\n", __func__);
+		timer_settime (priv->eap_buff_timer, 0, &setting, 0);
+		return;
+	}
 	//m = create_ptr(sizeof(struct mbuf));
 	//m->m_pkthdr.len = m->m_len = size;
 	//m->m_hdr.mh_data = create_ptr(size);
@@ -75,8 +118,6 @@ void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 	pkt->buf = create_ptr(size);
 	memset(pkt->buf, 0, size);
 	memcpy(pkt->buf, buff, size);
-
-
 
 		pthread_mutex_lock(&wilc->rx_mutex);
 
@@ -178,42 +219,7 @@ void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 	//		 (int)evp->sigev_value.sival_ptr);
 	//}
 
-	frame_len = size;
-	buff_to_send = buff;
 
-	if (status == PKT_STATUS_NEW && buff_to_send[12] == 0x88 &&
-	   buff_to_send[13] == 0x8e &&
-	   (vif->iftype == WILC_STATION_MODE ||
-	    vif->iftype == WILC_CLIENT_MODE) &&
-	   ether_addr_equal_unaligned(priv->associated_bss, null_bssid)) {
-		if (!priv->buffered_eap) {
-			priv->buffered_eap = create_ptr(sizeof(struct
-										    wilc_buffered_eap));
-			if (priv->buffered_eap) {
-				priv->buffered_eap->buff = NULL;
-				priv->buffered_eap->size = 0;
-				priv->buffered_eap->pkt_offset = 0;
-			} else {
-				PRINT_ER(vif->ndev,
-					 "failed to alloc buffered_eap\n");
-				return;
-			}
-		} else {
-			free_ptr(priv->buffered_eap->buff);
-		}
-		priv->buffered_eap->buff = create_ptr(size + pkt_offset);
-		priv->buffered_eap->size = size;
-		priv->buffered_eap->pkt_offset = pkt_offset;
-		memcpy(priv->buffered_eap->buff, buff -
-		       pkt_offset, size + pkt_offset);
-
-		//mod_timer(&priv->eap_buff_timer, (jiffies +
-		//	  msecs_to_jiffies(10)));
-		setting.it_value.tv_sec = 0;
-		setting.it_value.tv_nsec = 10000000;
-		timer_settime (priv->eap_buff_timer, 0, &setting, 0);
-		return;
-	}
 	//skb = dev_alloc_skb(frame_len);
 	//if (!skb) {
 	//	PRINT_ER(vif->ndev, "Low memory - packet droped\n");
@@ -233,6 +239,20 @@ void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 	//PRINT_D(vif->ndev, RX_DBG, "netif_rx ret value: %d", stats);
 }
 
+void free_eap_buff_params(void *vp)
+{
+	struct wilc_priv *priv;
+
+	priv = (struct wilc_priv *)vp;
+
+	if (priv->buffered_eap) {
+		free_ptr(priv->buffered_eap->buff);
+		priv->buffered_eap->buff = NULL;
+
+		free_ptr(priv->buffered_eap);
+		priv->buffered_eap = NULL;
+	}
+}
 
 void eap_buff_timeout(union sigval sig)
 {
@@ -241,8 +261,11 @@ void eap_buff_timeout(union sigval sig)
 	static u8 timeout = 5;
 	//int status = -1;
 	struct itimerspec setting;
-
-	struct wilc_priv *priv = (struct wilc_priv *)sig.sival_ptr;
+	int status = -1;
+	fprintf(stderr, "[%s] In\n", __func__);
+	//struct wilc_priv *priv = (struct wilc_priv *)sig.sival_ptr;
+	struct wilc_vif *vif = (struct wilc_vif *)sig.sival_ptr;
+	struct wilc_priv *priv = &vif->priv;
 
 	///struct wilc_vif *vif = netdev_priv(priv->dev);
 
@@ -256,11 +279,11 @@ void eap_buff_timeout(union sigval sig)
 		timer_settime (priv->eap_buff_timer, 0, &setting, 0);
 		return;
 	}
-	timer_delete(priv->eap_buff_timer);
+	//timer_delete(priv->eap_buff_timer);
 	//del_timer(&priv->eap_buff_timer);
 	timeout = 5;
 
-#if 0
+#if 1
 	status = wilc_send_buffered_eap(vif, wilc_frmw_to_host,
 					free_eap_buff_params,
 					priv->buffered_eap->buff,
@@ -315,9 +338,10 @@ void get_irq_event_handler(void *data)
 	struct wilc_dev *wilc = (struct wilc_dev *) data;
 
 
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log0\n", __func__);
+	//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log0\n", __func__);
 	while (1)
 	{
+#if 0
 		if (quiescing_irq_event) {
 
 			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log1\n", __func__);
@@ -331,7 +355,7 @@ void get_irq_event_handler(void *data)
 			quiesce_block(quiesce_die_irq_event);
 			quiescing_irq_event = 0;
 		}
-
+#endif
 
 		//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log1\n", __func__);
 		sdio_event_get(wilc->sdio, 1);
@@ -479,6 +503,7 @@ static int pkt_rx_task(void *vp)
 			///m_copyback(m, 0, pkt->size, pkt->buf);
 
 			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] size = %d, mh_len = %d \n", __func__, m->m_pkthdr.len, m->m_hdr.mh_len);
+			//fprintf(stderr,"[%s] size = %d, mh_len = %d \n", __func__, m->m_pkthdr.len, m->m_hdr.mh_len);
 
 			//for (j = 0; j<3; j++)
 			//	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"buf = 0x%x  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x \n", m->m_hdr.mh_data[9*j], m->m_hdr.mh_data[9*j+1], m->m_hdr.mh_data[9*j+2], m->m_hdr.mh_data[9*j+3], m->m_hdr.mh_data[9*j+4], m->m_hdr.mh_data[9*j+5], m->m_hdr.mh_data[9*j+6], m->m_hdr.mh_data[9*j+7], m->m_hdr.mh_data[9*j+8]);
@@ -487,6 +512,12 @@ static int pkt_rx_task(void *vp)
 
 			ifp->if_ipackets++; // for ifconfig -v
 			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log1 \n", __func__);
+
+#if NBPFILTER > 0
+			if (ifp->if_bpf)
+				bpf_mtap(ifp->if_bpf, m);
+#endif
+
 			(*ifp->if_input)(ifp, m);
 
 			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log2 \n", __func__);
@@ -496,6 +527,7 @@ static int pkt_rx_task(void *vp)
 
 			//fprintf(stderr,"[%s] size = %d\r\n", __func__, m->m_pkthdr.len);
 
+			/*
 			if (m->m_pkthdr.len == 113)
 			{
 				fprintf(stderr,"[%s] EAPOL packet size = %d\r\n", __func__, m->m_pkthdr.len);
@@ -503,7 +535,7 @@ static int pkt_rx_task(void *vp)
 								fprintf(stderr, " %x ", m->m_hdr.mh_data[j]);
 				fprintf(stderr, " \r\n ");
 			}
-
+			*/
 			if (m->m_pkthdr.len == 342)
 			{
 				for (j = 0; j<38; j++)

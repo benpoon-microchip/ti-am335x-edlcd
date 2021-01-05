@@ -298,6 +298,7 @@ static void handle_send_buffered_eap(struct work_struct *work)
 	struct host_if_msg *msg = container_of(work, struct host_if_msg, work);
 	struct wilc_vif *vif = msg->vif;
 	struct send_buffered_eap *hif_buff_eap = &msg->body.send_buff_eap;
+	fprintf(stderr, "[%s] In\n", __func__ );
 
 	PRINT_INFO(vif->ndev, HOSTINF_DBG, "Sending bufferd eapol to WPAS\n");
 	if (!hif_buff_eap->buff)
@@ -315,6 +316,8 @@ static void handle_send_buffered_eap(struct work_struct *work)
 		kfree(hif_buff_eap->buff);
 		hif_buff_eap->buff = NULL;
 	}
+
+	fprintf(stderr, "[%s] Out\n", __func__ );
 
 out:
 	kfree(msg);
@@ -1831,7 +1834,7 @@ signed int wilc_send_buffered_eap(struct wilc_vif *vif,
 {
 	int result;
 	struct host_if_msg *msg;
-
+	fprintf(stderr, "[%s] In\n", __func__ );
 	if (!vif || !deliver_to_stack || !eap_buf_param)
 		return -EFAULT;
 
@@ -1969,6 +1972,7 @@ int wilc_add_ptk(struct wilc_vif *vif, const u8 *ptk, u8 ptk_key_len,
 		 const u8 *mac_addr, const u8 *rx_mic, const u8 *tx_mic,
 		 u8 mode, u8 cipher_mode, u8 index)
 {
+	slogf(_SLOGC_NETWORK, _SLOG_INFO, "[%s] In\n", __func__);
 	int result = 0;
 	u8 t_key_len = ptk_key_len + WILC_RX_MIC_KEY_LEN + WILC_TX_MIC_KEY_LEN;
 
@@ -2006,7 +2010,7 @@ int wilc_add_ptk(struct wilc_vif *vif, const u8 *ptk, u8 ptk_key_len,
 		wid_list[1].val = (s8 *)key_buf;
 		result = wilc_send_config_pkt(vif, WILC_SET_CFG, wid_list,
 					      ARRAY_SIZE(wid_list));
-		kfree(key_buf);
+		free_ptr(key_buf);
 	} else if (mode == WILC_STATION_MODE) {
 		struct wid wid;
 		struct wilc_sta_wpa_ptk *key_buf;
@@ -2035,7 +2039,7 @@ int wilc_add_ptk(struct wilc_vif *vif, const u8 *ptk, u8 ptk_key_len,
 		wid.size = sizeof(*key_buf) + t_key_len;
 		wid.val = (s8 *)key_buf;
 		result = wilc_send_config_pkt(vif, WILC_SET_CFG, &wid, 1);
-		kfree(key_buf);
+		free_ptr(key_buf);
 	}
 
 	return result;
@@ -2046,6 +2050,8 @@ int wilc_add_rx_gtk(struct wilc_vif *vif, const u8 *rx_gtk, u8 gtk_key_len,
 		    const u8 *rx_mic, const u8 *tx_mic, u8 mode,
 		    u8 cipher_mode)
 {
+	slogf(_SLOGC_NETWORK, _SLOG_INFO, "[%s] In\n", __func__);
+	//fprintf(stderr, "IEEE80211_IOC_WPAKEY set:  wk_req->ik_keyrsc = 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n", key_rsc[0], key_rsc[1], key_rsc[2], key_rsc[3], key_rsc[4], key_rsc[5]);
 	int result = 0;
 	struct wilc_gtk_key *gtk_key;
 	int t_key_len = gtk_key_len + WILC_RX_MIC_KEY_LEN + WILC_TX_MIC_KEY_LEN;
@@ -2089,7 +2095,7 @@ int wilc_add_rx_gtk(struct wilc_vif *vif, const u8 *rx_gtk, u8 gtk_key_len,
 
 		result = wilc_send_config_pkt(vif, WILC_SET_CFG, wid_list,
 					      ARRAY_SIZE(wid_list));
-		kfree(gtk_key);
+		free_ptr(gtk_key);
 	} else if (mode == WILC_STATION_MODE) {
 		struct wid wid;
 
@@ -2098,7 +2104,7 @@ int wilc_add_rx_gtk(struct wilc_vif *vif, const u8 *rx_gtk, u8 gtk_key_len,
 		wid.size = sizeof(*gtk_key) + t_key_len;
 		wid.val = (s8 *)gtk_key;
 		result = wilc_send_config_pkt(vif, WILC_SET_CFG, &wid, 1);
-		kfree(gtk_key);
+		free_ptr(gtk_key);
 	}
 
 	return result;

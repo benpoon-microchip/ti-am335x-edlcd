@@ -1480,8 +1480,16 @@ static void wilc_wlan_handle_isr_ext(struct wilc_dev *wilc, uint32_t int_status)
 	uint32_t retries = 0;
 	int ret = 0;
 	struct rxq_entry_t *rqe;
+	struct timespec	tv_start, tv_end;
+	uint32_t	tv_s_diff;
+	long	tv_ns_diff;
+
+	//clock_gettime(CLOCK_MONOTONIC, &tv_start);
+
+
 
 	size = (int_status & 0x7fff) << 2;
+	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: size = %d\n", __func__, size);
 
 	while (!size && retries < 10) {
 		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: RX Size equal zero Trying to read it again\n", __func__);
@@ -1523,6 +1531,13 @@ static void wilc_wlan_handle_isr_ext(struct wilc_dev *wilc, uint32_t int_status)
 		return;
 	}
 	//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] rqe=%p\n", __func__, rqe);
+
+
+	//clock_gettime(CLOCK_MONOTONIC, &tv_end);
+	//tv_ns_diff = tv_end.tv_nsec - tv_start.tv_nsec;
+	//tv_s_diff = tv_end.tv_sec - tv_start.tv_sec;
+
+	//fprintf(stderr,"[%s] tv_s_diff = %d, tv_ns_diff = %ld\n", __func__, tv_s_diff, tv_ns_diff);
 
 	rqe->buffer = buffer;
 	rqe->buffer_size = size;
