@@ -116,6 +116,10 @@ void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 	pkt = create_ptr(sizeof(struct pkt_buf));
 	pkt->size = size;
 	pkt->buf = create_ptr(size);
+	if (pkt->buf == NULL)
+		slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] cannot allocate memory\n", __func__);
+
+	
 	memset(pkt->buf, 0, size);
 	memcpy(pkt->buf, buff, size);
 
@@ -157,7 +161,7 @@ void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 			break;
 		}
 #endif
-		pthread_mutex_unlock(&wilc->rx_mutex);
+	pthread_mutex_unlock(&wilc->rx_mutex);
 
 
 
@@ -548,6 +552,7 @@ static int pkt_rx_task(void *vp)
 			pthread_mutex_unlock(&wl->rx_mutex);
 			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log21 \n", __func__);
 			list_del(&pkt->list);
+			free_ptr(pkt->buf);
 			free_ptr(pkt);
 			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log2 \n", __func__);
 		} else {

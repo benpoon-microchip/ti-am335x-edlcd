@@ -194,21 +194,25 @@ static void cfg_scan_result(enum scan_event scan_event,
 
 		ssid_elm = cfg80211_find_ie(WLAN_EID_SSID, ies, ies_len);
 		PRINT_INFO(msg->vif->ndev, HOSTINF_DBG, "ssid = 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n", ssid_elm[0], ssid_elm[1], ssid_elm[2], ssid_elm[3], ssid_elm[4], ssid_elm[5], ssid_elm[6], ssid_elm[7]);
+		PRINT_INFO(msg->vif->ndev, HOSTINF_DBG, "scan_idx = %d\n", scan_idx);
 
-		memcpy(scan_result[scan_idx]. ssid, ssid_elm + 2, ssid_elm[1]);
-		memcpy(scan_result[scan_idx].bssid, info->mgmt->bssid, 6);
-		scan_result[scan_idx].channel = info->ch;
-		scan_result[scan_idx].rssi = info->rssi;
-		scan_result[scan_idx].mgmt = (struct ieee80211_mgmt *) create_ptr(info->frame_len);
-		memcpy(scan_result[scan_idx].mgmt, info->mgmt, info->frame_len);
-		//scan_result[scan_idx].mgmt = info->mgmt;
-		scan_result[scan_idx].frame_len = info->frame_len;
+		if (scan_idx < MAX_SCAN_AP)
+		{
+			memcpy(scan_result[scan_idx]. ssid, ssid_elm + 2, ssid_elm[1]);
+			memcpy(scan_result[scan_idx].bssid, info->mgmt->bssid, 6);
+			scan_result[scan_idx].channel = info->ch;
+			scan_result[scan_idx].rssi = info->rssi;
+			scan_result[scan_idx].mgmt = (struct ieee80211_mgmt *) create_ptr(info->frame_len);
+			memcpy(scan_result[scan_idx].mgmt, info->mgmt, info->frame_len);
+			scan_result[scan_idx].frame_len = info->frame_len;
 
-		//if (scan_idx == 0)
-		//	scan_num = 0;
-
-		scan_idx++;
-		scan_num++;
+			scan_idx++;
+			scan_num++;
+		}
+		else
+		{
+			PRINT_INFO(msg->vif->ndev, HOSTINF_DBG, "AP scanned reach maximum\n");
+		}
 
 		PRINT_INFO(priv->dev, CFG80211_DBG, "ifp= %p\n", ifp);
 		PRINT_D(priv->dev, CFG80211_DBG,

@@ -186,6 +186,7 @@ static void wilc_tx_complete(void *priv, int status)
 	else
 		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"Couldn't send pkt Size= %d Add= %p\n", pv_data->size, pv_data->buff);
 
+	free_ptr(pv_data->buff);
 	free_ptr(pv_data);
 }
 
@@ -745,6 +746,9 @@ void wilc_start(struct ifnet *ifp)
 		///slogf(_SLOGC_NETWORK, _SLOG_ERROR,"buf1 len=%d, data=0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x", m->m_hdr.mh_len, m->m_hdr.mh_data[0],m->m_hdr.mh_data[1], m->m_hdr.mh_data[2], m->m_hdr.mh_data[3], m->m_hdr.mh_data[4],m->m_hdr.mh_data[5], m->m_hdr.mh_data[6], m->m_hdr.mh_data[7], m->m_hdr.mh_data[8], m->m_hdr.mh_data[9], m->m_hdr.mh_data[10], m->m_hdr.mh_data[11], m->m_hdr.mh_data[12], m->m_hdr.mh_data[13], m->m_hdr.mh_data[14], m->m_hdr.mh_data[15]);
 		//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"buf2 len=%d, data=0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x", m->m_pkthdr.len, m->m_dat[0], m->m_dat[1], m->m_dat[2], m->m_dat[3], m->m_dat[4], m->m_dat[5], m->m_dat[6], m->m_dat[7], m->m_dat[8], m->m_dat[9], m->m_dat[10], m->m_dat[11], m->m_dat[12], m->m_dat[13], m->m_dat[14], m->m_dat[15]);
 		///slogf(_SLOGC_NETWORK, _SLOG_ERROR,"buf2 len=%d, data=0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x", m->m_pkthdr.len, m->m_pktdat[0], m->m_pktdat[1], m->m_pktdat[2], m->m_pktdat[3], m->m_pktdat[4], m->m_pktdat[5], m->m_pktdat[6], m->m_pktdat[7], m->m_pktdat[8], m->m_pktdat[9], m->m_pktdat[10], m->m_pktdat[11], m->m_pktdat[12], m->m_pktdat[13], m->m_pktdat[14], m->m_pktdat[15]);
+		//fprintf(stderr,"buf1 len=%d, data=0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x", m->m_hdr.mh_len, m->m_hdr.mh_data[0],m->m_hdr.mh_data[1], m->m_hdr.mh_data[2], m->m_hdr.mh_data[3], m->m_hdr.mh_data[4],m->m_hdr.mh_data[5], m->m_hdr.mh_data[6], m->m_hdr.mh_data[7], m->m_hdr.mh_data[8], m->m_hdr.mh_data[9], m->m_hdr.mh_data[10], m->m_hdr.mh_data[11], m->m_hdr.mh_data[12], m->m_hdr.mh_data[13], m->m_hdr.mh_data[14], m->m_hdr.mh_data[15]);
+		//fprintf(stderr,"buf2 len=%d, data=0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x", m->m_pkthdr.len, m->m_pktdat[0], m->m_pktdat[1], m->m_pktdat[2], m->m_pktdat[3], m->m_pktdat[4], m->m_pktdat[5], m->m_pktdat[6], m->m_pktdat[7], m->m_pktdat[8], m->m_pktdat[9], m->m_pktdat[10], m->m_pktdat[11], m->m_pktdat[12], m->m_pktdat[13], m->m_pktdat[14], m->m_pktdat[15]);
+
 		/* You're now committed to transmitting it */
 		if (wilc->cfg.verbose) {
 			printf("Packet sent\n");
@@ -773,19 +777,33 @@ void wilc_start(struct ifnet *ifp)
 		m_copydata(m, 0, m->m_pkthdr.len, tx_data->buff);
 		tx_data->size = m->m_pkthdr.len;
 
+#if 0
 		// print the frag packet
-		/*
+
 		struct mbuf		*m2;
 		int			num_frags;
+		void 	*temp_buf;
 
+		//temp_buf = (char *)tx_data->buff;
+		fprintf(stderr,"m len=%d, data=0x%x 0x%x 0x%x 0x%x\r\n", m->m_pkthdr.len, m->m_hdr.mh_data[0],m->m_hdr.mh_data[1], m->m_hdr.mh_data[2], m->m_hdr.mh_data[3]);
+		//fprintf(stderr,"m2 len=%d, data=0x%x 0x%x 0x%x 0x%x\r\n", m->m_pkthdr.len, (char)tx_data->buff[0],(char)tx_data->buff[1], (char)tx_data->buff[2], (char)tx_data->buff[3]);
+		//fprintf(stderr,"m2 len=%d, data=0x%x 0x%x 0x%x 0x%x\r\n", m2->m_pkthdr.len, temp_buf[0],temp_buf[1], temp_buf[2], temp_buf[3]);
 
 		for (num_frags = 0, m2 = m; m2; num_frags++) {
 		m2 = m2->m_next;
 		if (m2)
-			fprintf(stderr,"m2 len=%d, data=0x%x 0x%x 0x%x 0x%x\r\n", m2->m_hdr.mh_len, m2->m_hdr.mh_data[0],m2->m_hdr.mh_data[1], m2->m_hdr.mh_data[2], m2->m_hdr.mh_data[3]);
+			fprintf(stderr,"m2 len=%d, data=0x%x 0x%x 0x%x 0x%x\r\n", m2->m_pkthdr.len, m2->m_hdr.mh_data[0],m2->m_hdr.mh_data[1], m2->m_hdr.mh_data[2], m2->m_hdr.mh_data[3]);
+			if (m2->m_hdr.mh_len > 0)
+			{
+				temp_buf = create_ptr(m2->m_hdr.mh_len);
+				m_copydata(m2, 0, m2->m_hdr.mh_len, temp_buf);
+				//fprintf(stderr,"m2 len=%d, data=0x%x 0x%x 0x%x 0x%x\r\n", m2->m_pkthdr.len, temp_buf[0],temp_buf[1], temp_buf[2], temp_buf[3]);
+				free_ptr(temp_buf);
+			}
+
 		}
 		fprintf(stderr,"num_frags=%d\n", num_frags);
-		*/
+#endif
 
 		//fprintf(stderr, "m->m_pkthdr.len = %d\n", m->m_pkthdr.len);
 
@@ -873,6 +891,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
     static int req_ie_len;
     u8 req_ie[100];
     int i = 0; // for counting
+    int start_pos = 0;
 
     //uint8_t test_bssid[6] = {0x10, 0x7b, 0x44, 0xea, 0x1c, 0xa8};
     uint8_t test_bssid[6] = {0x50, 0xc7, 0xbf, 0xae, 0xe1, 0x7a};
@@ -904,8 +923,6 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_AUTHMODE set %d\n", ireq->i_val);
         switch (ireq->i_val) {
         case IEEE80211_AUTH_WPA:
-
-
 			break;
         case IEEE80211_AUTH_8021X:  /* 802.1x */
         	break;
@@ -1001,7 +1018,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         switch (wk_req->ik_type)
         {
         	case IEEE80211_CIPHER_WEP:
-        		// to do
+        		// No need to support
         	break;
         	case IEEE80211_CIPHER_TKIP:
         		// to do
@@ -1055,6 +1072,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
     case IEEE80211_IOC_DELKEY:
         slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_DELKEY set: \n");
         //TODO:
+        // No implementation as both WEP and get_key are no need support
         break;
     case IEEE80211_IOC_MLME:
 
@@ -1197,6 +1215,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         //TODO:
         break;
     case IEEE80211_IOC_OPTIE:
+
     	slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_OPTIE i_value = %d, i_len = %d\n", ireq->i_val, ireq->i_len);
     	error = copyin((char *)ireq + sizeof(*ireq), req_ie, ireq->i_len);
     	//req_ie = ireq->i_data;
@@ -1207,17 +1226,22 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
 			req_ie_len = req_ie[1] + 2;
 			slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] IEEE80211_IOC_OPTIE, req_ie_len = %d", __func__, req_ie_len);
 
+			if (req_ie[0] == 0xdd) // vendor specific element
+				start_pos = 8;
+			else
+				start_pos = 4;
+
 			//memcpy(&crypto.cipher_group, &req_ie[4], 4);
-			crypto.cipher_group = req_ie[4]<<24 | req_ie[5]<<16 | req_ie[6]<<8 | req_ie[7];
-			crypto.n_ciphers_pairwise = req_ie[8];
+			crypto.cipher_group = req_ie[start_pos]<<24 | req_ie[start_pos + 1]<<16 | req_ie[start_pos + 2]<<8 | req_ie[start_pos + 3];
+			crypto.n_ciphers_pairwise = req_ie[start_pos + 4];
 			//memcpy(&crypto.ciphers_pairwise[0], &req_ie[10], 4);
 			for (i = 0; i < crypto.n_ciphers_pairwise; i++)
-				crypto.ciphers_pairwise[i] = req_ie[i*4 + 10]<<24 | req_ie[i*4 + 11]<<16 | req_ie[i*4 + 12]<<8 | req_ie[i*4 + 13];
+				crypto.ciphers_pairwise[i] = req_ie[i*4 + start_pos + 6]<<24 | req_ie[i*4 + start_pos + 7]<<16 | req_ie[i*4 + start_pos + 8]<<8 | req_ie[i*4 + start_pos + 9];
 
-			crypto.n_akm_suites = req_ie[10 + 4*crypto.n_ciphers_pairwise];
+			crypto.n_akm_suites = req_ie[start_pos + 6 + 4*crypto.n_ciphers_pairwise];
 			//memcpy(&crypto.akm_suites[0], &req_ie[10 + 4*crypto.n_ciphers_pairwise + 2], 4);
 			for (i = 0; i < crypto.n_akm_suites; i++)
-				crypto.akm_suites[0] = req_ie[(10 + 4*crypto.n_ciphers_pairwise + 2) + i*4]<<24 | req_ie[(10 + 4*crypto.n_ciphers_pairwise + 2) + i*4 + 1]<<16 | req_ie[(10 + 4*crypto.n_ciphers_pairwise + 2) + i*4 + 2]<<8 | req_ie[(10 + 4*crypto.n_ciphers_pairwise + 2) + i*4 +3];
+				crypto.akm_suites[0] = req_ie[(start_pos + 6 + 4*crypto.n_ciphers_pairwise + 2) + i*4]<<24 | req_ie[(start_pos + 6 + 4*crypto.n_ciphers_pairwise + 2) + i*4 + 1]<<16 | req_ie[(start_pos + 6 + 4*crypto.n_ciphers_pairwise + 2) + i*4 + 2]<<8 | req_ie[(start_pos + 6 + 4*crypto.n_ciphers_pairwise + 2) + i*4 +3];
 
         }
         else
@@ -1301,7 +1325,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
 			scan_req->ie = NULL;
 
 			scan_req->n_ssids = 1;
-			scan_req->n_channels = 11;
+			scan_req->n_channels = 14;
 			scan_req->channels[0].ic_freq = 2412;
 			scan_req->channels[1].ic_freq = 2417;
 			scan_req->channels[2].ic_freq = 2422;
@@ -1313,9 +1337,12 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
 			scan_req->channels[8].ic_freq = 2452;
 			scan_req->channels[9].ic_freq = 2457;
 			scan_req->channels[10].ic_freq = 2462;
+			scan_req->channels[11].ic_freq = 2467;
+			scan_req->channels[12].ic_freq = 2472;
+			scan_req->channels[13].ic_freq = 2484;
 
+			// active scan
 			scan_req->ssids = (struct cfg80211_ssid *) create_ptr(sizeof(struct cfg80211_ssid));
-			//memcpy(scan_req->ssids->ssid, "mchp_demo", 9);
 			memset(scan_req->ssids->ssid, 0, sizeof(scan_req->ssids->ssid));
 			scan_req->ssids->ssid_len = 0;
 

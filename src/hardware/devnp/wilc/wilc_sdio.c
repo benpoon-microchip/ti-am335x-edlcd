@@ -1159,42 +1159,21 @@ static int sdio_read(struct wilc_dev *wilc, uint32_t addr, uint8_t *buf, uint32_
 		if (addr > 0)
 			addr += nblk * block_size;
 		buf += nblk * block_size;
-	}       /* if (nblk > 0) */
+	}
 	// specific fix for stability issue, issue exist if size is >512 and < 1024
 	// To Do: Fix this SDIO related issue
 	else if (nblk == 1)
 	{
-		cmd.block_mode = 0;
-		cmd.increment = 1;
-		cmd.count = block_size -1;
-		cmd.buffer = buf;
-		cmd.block_size = block_size;
-		if (addr > 0) {
-			if (!sdio_set_func0_csa_address(wilc->sdio, 0, addr))
-				goto fail;
-		}
-		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
-		//	fprintf(stderr,"[%s] 3 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
-		ret = wilc_sdio_cmd53(wilc->sdio, 0, &cmd);
-		if (ret) {
-			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Failed cmd53 [%x], block read...\n", __func__, addr);
-			goto fail;
-		}
-		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
-		//	fprintf(stderr,"[%s] 4 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
-
-		if (addr > 0)
-			addr += nblk * block_size -1;
-		buf += nblk * block_size -1;
-		nleft += 1;
+		nleft += block_size;
 	}
 
-	//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
-	//fprintf(stderr,"[%s] 5 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
-	if (nleft > 0) {
+	while (nleft > 0) {
+		// < 1024 bytes, using byte transfer
+		// cnt should be < 512 and 4 bytes aligned
+		int cnt = nleft > (block_size - 4) ? (block_size - 4) : nleft;
 		cmd.block_mode = 0;
 		cmd.increment = 1;
-		cmd.count = nleft;
+		cmd.count = cnt;
 		cmd.buffer = buf;
 
 		cmd.block_size = block_size;
@@ -1203,13 +1182,15 @@ static int sdio_read(struct wilc_dev *wilc, uint32_t addr, uint8_t *buf, uint32_
 			if (!sdio_set_func0_csa_address(wilc->sdio, 0, addr))
 				goto fail;
 		}
-		//clock_gettime(CLOCK_MONOTONIC, &tv_temp);
-		//	fprintf(stderr,"[%s] 6 sec = %d, nsec = %ld\n", __func__, tv_temp.tv_sec, tv_temp.tv_nsec);
 		ret = wilc_sdio_cmd53(wilc->sdio, 0, &cmd);
 		if (ret) {
-			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Failed cmd53 [%x], bytes read...\n", __func__, addr);
+			printf("Failed cmd53 [%x], bytes send...\n", addr);
 			goto fail;
 		}
+		if (addr > 0)
+			addr += cnt;
+		buf += cnt;
+		nleft -= cnt;
 	}
 	//clock_gettime(CLOCK_MONOTONIC, &tv_end);
 	//tv_ns_diff = tv_end.tv_nsec - tv_start.tv_nsec;
@@ -1290,32 +1271,16 @@ static int sdio_write(struct wilc_dev *wilc, uint32_t addr, uint8_t *buf, uint32
 	// To Do: Fix this SDIO related issue
 	else if (nblk == 1)
 	{
-		cmd.block_mode = 0;
-		cmd.increment = 1;
-		cmd.count = block_size -1;
-		cmd.buffer = buf;
-		cmd.block_size = block_size;
-		if (addr > 0) {
-			if (!sdio_set_func0_csa_address(wilc->sdio, 0, addr))
-				goto fail;
-		}
-		ret = wilc_sdio_cmd53(wilc->sdio, 0, &cmd);
-		if (ret) {
-			printf("Failed cmd53 [%x], block send...\n", addr);
-			goto fail;
-		}
-		if (addr > 0)
-			addr += nblk * block_size -1;
-		buf += nblk * block_size -1;
-		nleft += 1;
-
+		nleft += block_size;
 	}
 
-	if (nleft > 0) {
-		//delay(100);
+	while (nleft > 0) {
+		// < 1024 bytes, using byte transfer
+		// cnt should be < 512 and 4 bytes aligned
+		int cnt = nleft > (block_size - 4) ? (block_size - 4) : nleft;
 		cmd.block_mode = 0;
 		cmd.increment = 1;
-		cmd.count = nleft;
+		cmd.count = cnt;
 		cmd.buffer = buf;
 
 		cmd.block_size = block_size;
@@ -1329,6 +1294,10 @@ static int sdio_write(struct wilc_dev *wilc, uint32_t addr, uint8_t *buf, uint32
 			printf("Failed cmd53 [%x], bytes send...\n", addr);
 			goto fail;
 		}
+		if (addr > 0)
+			addr += cnt;
+		buf += cnt;
+		nleft -= cnt;
 	}
 
 	return 1;

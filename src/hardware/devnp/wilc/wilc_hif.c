@@ -1158,8 +1158,9 @@ static void handle_rcvd_ntwrk_info(struct work_struct *work)
 		scan_req->scan_result(SCAN_EVENT_NETWORK_FOUND,
 				      rcvd_info, scan_req->arg, ifp);
 
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Out\n", __func__);
+
 done:
+	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Out\n", __func__);
 	kfree(rcvd_info->mgmt);
 	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Out 2\n", __func__);
 	kfree(msg);

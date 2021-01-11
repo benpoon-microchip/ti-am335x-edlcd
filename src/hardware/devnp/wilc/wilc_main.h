@@ -19,7 +19,7 @@
 
 
 #define NQUEUES			4
-#define MAX_SCAN_AP		15
+#define MAX_SCAN_AP		25
 
 struct pkt_buf	{
 	struct list_head list;
