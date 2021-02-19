@@ -83,7 +83,7 @@ int wilc_attach(struct device *, struct device *, void *);
 int wilc_detach(struct device *, int);
 
 struct wilc_vif* vif;
-extern struct scan_results scan_result[10];
+extern struct scan_results scan_result[MAX_SCAN_AP];
 extern int scan_num;
 extern int scan_finish;
 int scan_idx;
@@ -198,8 +198,7 @@ int wilc_drv_init_extra(struct wilc_dev *sc)
 	enum ieee80211_phymode mode;
 	int error = 0;
 
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] In\n", __func__);
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] ifp= %p!!!", __func__, ifp);
+	PRINT_D(IOCTL_DBG, "[%s] In, ifp= %p\n", __func__, ifp);
 
 	if ((error = wilc_enable(sc)) != 0)
 	{
@@ -281,11 +280,12 @@ int wilc_drv_init_extra(struct wilc_dev *sc)
 
 	ni = ic->ic_bss;
 	ni->ni_chan = ic->ic_ibss_chan;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] freq=%d\n", __func__, ni->ni_chan->ic_freq);
+	PRINT_D(IOCTL_DBG, "[%s] freq=%d\n", __func__, ni->ni_chan->ic_freq);
 	mode = ieee80211_chan2mode(ic, ni->ni_chan);
 	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] mode=%d\n", __func__, mode);
+	PRINT_D(IOCTL_DBG, "[%s] mode=%d\n", __func__, mode);
 	int test=ieee80211_chan2ieee(ic, ic->ic_ibss_chan);
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] test=%d\n", __func__, test);
+	PRINT_D(IOCTL_DBG, "[%s] test=%d\n", __func__, test);
 
 	//if (mode != sc->sc_curmode)
 	//	ath_setcurmode(sc, mode);
@@ -298,7 +298,8 @@ int wilc_drv_init_extra(struct wilc_dev *sc)
 	} else {
 		//ieee80211_new_state(ic, IEEE80211_S_RUN, -1);
 	}
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] out\n", __func__);
+
+	PRINT_D(IOCTL_DBG, "[%s] out\n", __func__);
 done:
 	//splx(s);
 	return error;
@@ -714,7 +715,7 @@ void wilc_start(struct ifnet *ifp)
 	struct tx_complete_data *tx_data = NULL;
 	int queue_count;
 
-	slogf(_SLOGC_NETWORK, _SLOG_INFO, "[%s] In\n", __func__);
+	PRINT_D(TX_DBG, "[%s] In\n", __func__);
 
 	//char test_buf[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf8, 0xf0, 0x05, 0xe5, 0x47, 0x91, 0x08, 0x06, 0x00, 0x01,
 	//		0x08, 0x00, 0x06, 0x04, 0x00, 0x01, 0xf8, 0xf0, 0x05, 0xe5, 0x47, 0x91, 0x00, 0x00, 0x00, 0x00,
@@ -728,7 +729,6 @@ void wilc_start(struct ifnet *ifp)
 		IFQ_POLL(&ifp->if_snd, m);
 		if (m == NULL)
 		{
-			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"m=NULL\n");
 			break;
 		}
 		/*
@@ -897,7 +897,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
     uint8_t test_bssid[6] = {0x50, 0xc7, 0xbf, 0xae, 0xe1, 0x7a};
     //const struct ieee80211_authenticator *auth;
 
-    slogf(_SLOGC_NETWORK, _SLOG_INFO, "SIOCS80211: i_type = %d\n", ireq->i_type);
+    PRINT_INFO(IOCTL_DBG, "SIOCS80211: i_type = %d\n", ireq->i_type);
     error = 0;
     switch (ireq->i_type) {
     case IEEE80211_IOC_WEP:
@@ -919,8 +919,8 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         break;
 
     case IEEE80211_IOC_AUTHMODE:
-		slogf(_SLOGC_NETWORK, _SLOG_INFO, "SIOCS80211: i_type = %d\n", ireq->i_type);
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_AUTHMODE set %d\n", ireq->i_val);
+    	PRINT_INFO(IOCTL_DBG, "SIOCS80211: i_type = %d\n", ireq->i_type);
+    	PRINT_INFO(IOCTL_DBG, "IEEE80211_IOC_AUTHMODE set %d\n", ireq->i_val);
         switch (ireq->i_val) {
         case IEEE80211_AUTH_WPA:
 			break;
@@ -968,7 +968,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         break;
 
     case IEEE80211_IOC_ROAMING:
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_ROAMING set: %d\n", ireq->i_val);
+        PRINT_INFO(IOCTL_DBG, "IEEE80211_IOC_ROAMING set: %d\n", ireq->i_val);
         if (!(IEEE80211_ROAMING_DEVICE <= ireq->i_val &&
             ireq->i_val <= IEEE80211_ROAMING_MANUAL))
             return EINVAL;
@@ -976,7 +976,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         /* XXXX reset? */
         break;
     case IEEE80211_IOC_PRIVACY:
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_PRIVACY set: %d\n", ireq->i_val);
+    	PRINT_INFO(IOCTL_DBG, "IEEE80211_IOC_PRIVACY set: %d\n", ireq->i_val);
         if (ireq->i_val) {
             /* XXX check for key state? */
             ic->ic_flags |= IEEE80211_F_PRIVACY;
@@ -988,14 +988,14 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         }
         break;
     case IEEE80211_IOC_DROPUNENCRYPTED:
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_DROPUNENCRYPTED set: %d\n", ireq->i_val);
+        PRINT_INFO(IOCTL_DBG, "IEEE80211_IOC_DROPUNENCRYPTED set: %d\n", ireq->i_val);
         if (ireq->i_val)
             ic->ic_flags |= IEEE80211_F_DROPUNENC;
         else
             ic->ic_flags &= ~IEEE80211_F_DROPUNENC;
         break;
     case IEEE80211_IOC_WPAKEY:
-    	slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_WPAKEY set: \n");
+    	PRINT_INFO(IOCTL_DBG, "IEEE80211_IOC_WPAKEY set:\n");
     	fprintf(stderr, "MCHP: IEEE80211_IOC_WPAKEY set: \n");
 
     	const u8 *rx_mic = NULL;
@@ -1013,7 +1013,6 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         fprintf(stderr, "MCHP: ik_type = 0x%x, ik_flags = 0x%x, ik_keyix = %u, ik_keylen = 0x%x\n", wk_req->ik_type, wk_req->ik_flags, wk_req->ik_keyix,  wk_req->ik_keylen);
         fprintf(stderr, "MCHP: ik_macaddr= 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n", wk_req->ik_macaddr[0], wk_req->ik_macaddr[1], wk_req->ik_macaddr[2],  wk_req->ik_macaddr[3], wk_req->ik_macaddr[4], wk_req->ik_macaddr[5]);
 #if 1
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_WPAKEY set: log1 \n");
         keylen = wk_req->ik_keylen;
         switch (wk_req->ik_type)
         {
@@ -1022,7 +1021,6 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         	break;
         	case IEEE80211_CIPHER_TKIP:
         		// to do
-        		slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_WPAKEY set: log2 \n");
         		if (wk_req->ik_keylen > 16) {
 					rx_mic = wk_req->ik_keydata + 24;
 					tx_mic = wk_req->ik_keydata + 16;
@@ -1031,19 +1029,14 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         		op_mode = WILC_STATION_MODE;
         	break;
         	case IEEE80211_CIPHER_AES_CCM:
-
-        		slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_WPAKEY set: log3 \n");
         		op_mode = WILC_STATION_MODE;
         	break;
         	default:
-        		slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_WPAKEY set: log4 \n");
         	break;
         }
-
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_WPAKEY set: log5, wk_req->ik_flags = 0x%x \n", wk_req->ik_flags);
+        PRINT_D(TX_DBG, "IEEE80211_IOC_WPAKEY set: log5, wk_req->ik_flags = 0x%x\n", wk_req->ik_flags);
         if (wk_req->ik_flags & IEEE80211_KEY_GROUP)
         {
-        	slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_WPAKEY set: log6 \n");
         	// group key
         	key_index = wk_req->ik_keyix;
         	fprintf(stderr, "IEEE80211_IOC_WPAKEY set:  wk_req->ik_keydata = 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x \n", wk_req->ik_keydata[0], wk_req->ik_keydata[1], wk_req->ik_keydata[2], wk_req->ik_keydata[3], wk_req->ik_keydata[4], wk_req->ik_keydata[5], wk_req->ik_keydata[6], wk_req->ik_keydata[7]);
@@ -1056,7 +1049,6 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         }
         else
         {
-        	slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_WPAKEY set: log7 \n");
         	// pairwise key
         	key_index = 0;
         	fprintf(stderr, "IEEE80211_IOC_WPAKEY set:  wk_req->ik_keydata = 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x \n", wk_req->ik_keydata[0], wk_req->ik_keydata[1], wk_req->ik_keydata[2], wk_req->ik_keydata[3], wk_req->ik_keydata[4], wk_req->ik_keydata[5], wk_req->ik_keydata[6], wk_req->ik_keydata[7]);
@@ -1070,7 +1062,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         //TODO:
         break;
     case IEEE80211_IOC_DELKEY:
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_DELKEY set: \n");
+    	PRINT_INFO(TX_DBG, "IEEE80211_IOC_DELKEY set:\n");
         //TODO:
         // No implementation as both WEP and get_key are no need support
         break;
@@ -1085,7 +1077,8 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
 			error = copyin((char *)ireq + sizeof(*ireq), mlme_req, sizeof(mlme));
 
 			fprintf(stderr, "IEEE80211_IOC_MLME i_value = %d, i_len = %d, im_op = %d, im_ssid_len = %d, im_ssid = %s, im_macaddr = 0x%x 0x%x 0x%x\n", ireq->i_val, ireq->i_len, mlme_req->im_op, mlme_req->im_ssid_len, mlme_req->im_ssid, mlme_req->im_macaddr[0], mlme_req->im_macaddr[1], mlme_req->im_macaddr[2]);
-			slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_MLME i_value = %d, i_len = %d, im_op = %d, im_ssid_len = %d, im_ssid = %s, im_macaddr = 0x%x 0x%x 0x%x\n", ireq->i_val, ireq->i_len, mlme_req->im_op, mlme_req->im_ssid_len, mlme_req->im_ssid, mlme_req->im_macaddr[0], mlme_req->im_macaddr[1], mlme_req->im_macaddr[2]);
+			PRINT_INFO(TX_DBG, "IEEE80211_IOC_MLME i_value = %d, i_len = %d, im_op = %d, im_ssid_len = %d, im_ssid = %s, im_macaddr = 0x%x 0x%x 0x%x\n", ireq->i_val, ireq->i_len, mlme_req->im_op, mlme_req->im_ssid_len, mlme_req->im_ssid, mlme_req->im_macaddr[0], mlme_req->im_macaddr[1], mlme_req->im_macaddr[2]);
+
 			//TODO:
 			if ( mlme_req->im_op == IEEE80211_MLME_ASSOC)
 			{
@@ -1094,7 +1087,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
 				{
 					if (!memcmp(scan_result[cnt].bssid, mlme_req->im_macaddr, IEEE80211_ADDR_LEN))
 					{
-						slogf(_SLOGC_NETWORK, _SLOG_INFO, "IEEE80211_IOC_MLME, Find AP \n");
+						PRINT_INFO(IOCTL_DBG, "IEEE80211_IOC_MLME, Find AP\n");
 						ap_found = 1;
 						break;
 					}
@@ -1108,12 +1101,12 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
 					if (ieee80211_is_probe_resp(scan_result[cnt].mgmt->frame_control))
 					{
 						offset = offsetof(struct ieee80211_mgmt, u.probe_resp.variable);
-						slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] IEEE80211_IOC_MLME, probe_resp, offset = %d", __func__,offset);
+						PRINT_D(IOCTL_DBG, "[%s] IEEE80211_IOC_MLME, probe_resp, offset = %d\n", __func__,offset);
 					}
 					else if (ieee80211_is_beacon(scan_result[cnt].mgmt->frame_control))
 					{
 						offset = offsetof(struct ieee80211_mgmt, u.beacon.variable);
-						slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] IEEE80211_IOC_MLME, is_beacon, offset = %d", __func__, offset);
+						PRINT_D(IOCTL_DBG, "[%s] IEEE80211_IOC_MLME, is_beacon, offset = %d\n", __func__,offset);
 					}
 
 					// assige the value to bss
@@ -1130,9 +1123,7 @@ wilc_ioctl_set80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
 					memcpy(bss.bssid, scan_result[cnt].bssid, IEEE80211_ADDR_LEN);
 
 					// hardcode crypto value;
-
-					slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] IEEE80211_IOC_MLME, crypto.cipher_group = 0x%x, crypto.n_ciphers_pairwise = 0x%x, crypto.ciphers_pairwise[0] = 0x%x, crypto.n_akm_suites = 0x%x, crypto.akm_suites[0] = 0x%x\n", __func__,crypto.cipher_group, crypto.n_ciphers_pairwise, crypto.ciphers_pairwise[0], crypto.n_akm_suites, crypto.akm_suites[0]);
-
+					PRINT_D(TX_DBG, "[%s] IEEE80211_IOC_MLME, crypto.cipher_group = 0x%x, crypto.n_ciphers_pairwise = 0x%x, crypto.ciphers_pairwise[0] = 0x%x, crypto.n_akm_suites = 0x%x, crypto.akm_suites[0] = 0x%x\n", __func__,crypto.cipher_group, crypto.n_ciphers_pairwise, crypto.ciphers_pairwise[0], crypto.n_akm_suites, crypto.akm_suites[0]);
 					/*
 					rsn_ie = cfg80211_find_ie(WLAN_EID_RSN, bss.ies->data, bss.ies->len);
 					if (rsn_ie) {
@@ -1452,10 +1443,10 @@ wilc_ioctl_get80211(struct wilc_dev* sc, struct ieee80211com *ic, u_long cmd,
         break;
 
     case IEEE80211_IOC_SCAN_RESULTS:
-    	slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] IEEE80211_IOC_SCAN_RESULTS, In", __func__);
+    	PRINT_D(IOCTL_DBG, "[%s] IEEE80211_IOC_SCAN_RESULTS, In\n", __func__);
     	fprintf(stderr,"[%s] IEEE80211_IOC_SCAN_RESULTS, In", __func__);
     	error = wilc_get_scan(ireq);
-    	slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] IEEE80211_IOC_SCAN_RESULTS, Out", __func__);
+    	PRINT_D(IOCTL_DBG, "[%s] IEEE80211_IOC_SCAN_RESULTS, Out\n", __func__);
         break;
 
     default:
@@ -1490,8 +1481,7 @@ int wilc_get_scan(struct ieee80211req *ireq)
 	int ies_len;
 	size_t offset;
 
-
-	slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] Number of Scanned AP = %d", __func__, scan_num);
+	PRINT_INFO(IOCTL_DBG, "[%s] Number of Scanned AP = %d\n", __func__, scan_num);
     for (i=0; i< scan_num; i++)
     {
     	/*
@@ -1509,16 +1499,14 @@ int wilc_get_scan(struct ieee80211req *ireq)
         if (ieee80211_is_probe_resp(scan_result[i].mgmt->frame_control))
         {
 			offset = offsetof(struct ieee80211_mgmt, u.probe_resp.variable);
-			//slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s]probe_resp, offset = %d", __func__,offset);
         }
 		else if (ieee80211_is_beacon(scan_result[i].mgmt->frame_control))
 		{
 			offset = offsetof(struct ieee80211_mgmt, u.beacon.variable);
-			//slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s]is_beacon, offset = %d", __func__, offset);
 		}
 		ies = scan_result[i].mgmt->u.beacon.variable;
 		ies_len = scan_result[i].frame_len - offset;
-		slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] ies_len = %d", __func__, ies_len);
+		PRINT_D(IOCTL_DBG, "[%s] ies_len = %d\n", __func__, ies_len);
 
 		erp_elm = cfg80211_find_ie(WLAN_EID_ERP_INFO, ies, ies_len);
 		rates_elm = cfg80211_find_ie(WLAN_EID_SUPP_RATES, ies, ies_len);
@@ -1526,8 +1514,7 @@ int wilc_get_scan(struct ieee80211req *ireq)
 		rsn_elm = cfg80211_find_ie(WLAN_EID_RSN, ies, ies_len);
 		if (rsn_elm != NULL)
 		{
-			slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] SIOCG80211NWID, rsn_elm len = %d", __func__, rsn_elm[1]);
-
+			PRINT_D(IOCTL_DBG, "[%s] SIOCG80211NWID, rsn_elm len = %d\n", __func__, rsn_elm[1]);
 			//for (cnt = 0; cnt < rsn_elm[1]; cnt++)
 			//{
 			//	slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] SIOCG80211NWID, rsn_elm [%d] 0x%x", __func__, cnt, rsn_elm[cnt+2]);
@@ -1561,8 +1548,8 @@ int wilc_get_scan(struct ieee80211req *ireq)
         	result->isr_nrates = 0;
 
         //memcpy(result->isr_rates, <TODO: rates>, result->isr_nrates); // list of supported rates
-        result->isr_ssid_len = strlen((const char *)scan_result[i].ssid); // SSID length
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "result->isr_ssid_len = %d", result->isr_ssid_len);
+        result->isr_ssid_len = scan_result[i].ssid_len; // SSID length
+        PRINT_D(IOCTL_DBG, "[%s] result->isr_ssid_len = %d\n", __func__, result->isr_ssid_len);
         /*
         slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] SIOCG80211NWID, result[%d]->isr_ssid_len = %d", __func__, i, result->isr_ssid_len);
         slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] SIOCG80211NWID, result[%d]->isr_intval = %d", __func__, i, result->isr_intval);
@@ -1576,7 +1563,7 @@ int wilc_get_scan(struct ieee80211req *ireq)
         memcpy(cp, scan_result[i].ssid, result->isr_ssid_len);
         cp  += result->isr_ssid_len;
         result->isr_ie_len = result->isr_ssid_len; // SSID first
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "1 result->isr_ie_len = %d", result->isr_ie_len);
+        PRINT_D(IOCTL_DBG, "[%s] result->isr_ie_len = %d\n", __func__, result->isr_ie_len);
         //memcpy(cp, ies, ies_len);
         //result->isr_ie_len += ies_len;
         //if (ies_len > 255)
@@ -1602,8 +1589,8 @@ int wilc_get_scan(struct ieee80211req *ireq)
         //	memcpy(cp, ies, ies_len);
         //	result->isr_ie_len += ies_len;
         //}
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "2 ies_len = %d", ies_len);
-        slogf(_SLOGC_NETWORK, _SLOG_INFO, "2 result->isr_ie_len = %d", result->isr_ie_len);
+        PRINT_D(IOCTL_DBG, "[%s] 2 ies_len = %d\n", __func__, ies_len);
+        PRINT_D(IOCTL_DBG, "[%s] 2 result->isr_ie_len = %d\n", __func__, result->isr_ie_len);
         /*
         cp  -= result->isr_ssid_len;
         if (memcmp(scan_result[i].ssid, "MASTERS", 7) == 0)
@@ -1657,8 +1644,9 @@ int wilc_ioctl(struct ifnet *ifp, unsigned long cmd, caddr_t data)
 	struct wilc_priv *priv = &vif->priv;
 	struct host_if_drv *wfi_drv = priv->hif_drv;
 
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] cmd=0x%0x!!!", __func__, (unsigned int) cmd);
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] ifp= %p!!!", __func__, ifp);
+	PRINT_INFO(TX_DBG, "[%s] cmd=0x%0x\n", __func__, (unsigned int) cmd);
+	PRINT_INFO(TX_DBG, "[%s] ifp= %p\n",  __func__, ifp);
+
 	error = 0;
 
 	assert(ic);
@@ -1719,7 +1707,7 @@ int wilc_ioctl(struct ifnet *ifp, unsigned long cmd, caddr_t data)
 		break;
 
 	case SIOCS80211NWID: // set ssid
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"sam_ioctl (), SIOCS80211NWID\n");
+		PRINT_INFO(IOCTL_DBG, "sam_ioctl (), SIOCS80211NWID\n");
 		fprintf(stderr,"SIOCS80211NWID is received\r\n");
 
 		//u8 bssid[] = {0x58, 0xef, 0x68, 0x24, 0xe1, 0xf3};	//linksys
@@ -1756,14 +1744,14 @@ int wilc_ioctl(struct ifnet *ifp, unsigned long cmd, caddr_t data)
 			if (strncmp(vif->bssid, scan_result[i].bssid,6) == 0)
 			{
 				//fprintf(stderr, "match!\n");
-				memcpy(nwid.i_nwid, scan_result[i].ssid, strlen(scan_result[i].ssid));
+				memcpy(nwid.i_nwid, scan_result[i].ssid, scan_result[i].ssid_len);
 				break;
 			}
 		}
 
 
 
-		nwid.i_len = strlen(nwid.i_nwid);
+		nwid.i_len = scan_result[i].ssid_len;
 		error = copyout(&nwid, data + sizeof(*ifr), sizeof(nwid));
 
 		//nwid = (struct ieee80211_nwid *)data;

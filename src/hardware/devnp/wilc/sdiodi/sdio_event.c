@@ -43,7 +43,7 @@ static void sdio_interrupt(sdio_ext_t *sdio)
 	int ret = sdio->ivalidate(sdio->hchdl,0,0);
 	if (ret == SDIO_INTR_CARD)
 	{
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] SDIO_INTR_CARD \n", __func__);
+		//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] SDIO_INTR_CARD \n", __func__);
 		if (sdio->card_intr == 1) {
 			pthread_sleepon_lock();
 			sdio->card_intr++;

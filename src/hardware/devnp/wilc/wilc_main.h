@@ -20,6 +20,8 @@
 
 #define NQUEUES			4
 #define MAX_SCAN_AP		25
+#define MAX_SSID_LEN	32
+#define BSSID_LEN		6
 
 struct pkt_buf	{
 	struct list_head list;
@@ -118,8 +120,9 @@ struct channel
 
 struct scan_results
 {
-	uint8_t ssid[30];	// ssid name
-	uint8_t bssid[6];	// bssid
+	uint8_t ssid[MAX_SSID_LEN];	// ssid name
+	uint8_t ssid_len;
+	uint8_t bssid[BSSID_LEN];	// bssid
 	uint8_t channel;
 	int8_t rssi;
 	uint16_t frame_len;

@@ -471,6 +471,7 @@ sdio_write_iomem_v1(void *hdl, uint8_t fn, uint32_t address,
 		if (pthread_sleepon_timedwait(&sdio->wait_cmd, 1000 * 1000 * 1000) != EOK)
 		{
 			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"wait cmd53 transfer timeout...\n");
+			fprintf(stderr, "wait cmd53 transfer timeout...\n");
 		}
 		//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] transfer finish\n", __func__);
 		pthread_sleepon_unlock();
@@ -1029,7 +1030,7 @@ static int sdio_read_int(struct wilc_dev *wilc, uint32_t *int_status)
 	struct sdio_cmd52 cmd;
 	uint32_t irq_flags;
 	int i;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] In\n", __func__);
+	PRINT_D(SDIO_DBG, "[%s] In\n", __func__);
 	if (sdio_priv->irq_gpio) {
 		//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log1\n", __func__);
 		sdio_read_size(wilc, &tmp);
@@ -1074,7 +1075,7 @@ static int sdio_read_int(struct wilc_dev *wilc, uint32_t *int_status)
 
 		for (i = sdio_priv->nint; i < MAX_NUM_INT; i++) {
 			if ((tmp >> (IRG_FLAGS_OFFSET + i)) & 0x1) {
-				slogf(_SLOGC_NETWORK, _SLOG_ERROR,"Unexpected interrupt (1) : tmp=%x, data=%x\n", tmp, cmd.data);
+				PRINT_INFO(SDIO_DBG, "Unexpected interrupt (1) : tmp=%x, data=%x\n", tmp, cmd.data);
 				break;
 			}
 		}

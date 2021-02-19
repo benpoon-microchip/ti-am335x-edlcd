@@ -193,12 +193,13 @@ static void cfg_scan_result(enum scan_event scan_event,
 		ies_len = info->frame_len - offset;
 
 		ssid_elm = cfg80211_find_ie(WLAN_EID_SSID, ies, ies_len);
-		PRINT_INFO(msg->vif->ndev, HOSTINF_DBG, "ssid = 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n", ssid_elm[0], ssid_elm[1], ssid_elm[2], ssid_elm[3], ssid_elm[4], ssid_elm[5], ssid_elm[6], ssid_elm[7]);
-		PRINT_INFO(msg->vif->ndev, HOSTINF_DBG, "scan_idx = %d\n", scan_idx);
+		PRINT_INFO(HOSTINF_DBG, "ssid = 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n", ssid_elm[0], ssid_elm[1], ssid_elm[2], ssid_elm[3], ssid_elm[4], ssid_elm[5], ssid_elm[6], ssid_elm[7]);
+		PRINT_INFO(HOSTINF_DBG, "scan_idx = %d\n", scan_idx);
 
 		if (scan_idx < MAX_SCAN_AP)
 		{
 			memcpy(scan_result[scan_idx]. ssid, ssid_elm + 2, ssid_elm[1]);
+			scan_result[scan_idx].ssid_len = ssid_elm[1];
 			memcpy(scan_result[scan_idx].bssid, info->mgmt->bssid, 6);
 			scan_result[scan_idx].channel = info->ch;
 			scan_result[scan_idx].rssi = info->rssi;
@@ -211,11 +212,11 @@ static void cfg_scan_result(enum scan_event scan_event,
 		}
 		else
 		{
-			PRINT_INFO(msg->vif->ndev, HOSTINF_DBG, "AP scanned reach maximum\n");
+			PRINT_INFO(HOSTINF_DBG, "AP scanned reach maximum\n");
 		}
 
-		PRINT_INFO(priv->dev, CFG80211_DBG, "ifp= %p\n", ifp);
-		PRINT_D(priv->dev, CFG80211_DBG,
+		PRINT_INFO(CFG80211_DBG, "ifp= %p\n", ifp);
+		PRINT_D(CFG80211_DBG,
 			"Network Info:: CHANNEL: %d, RSSI: %d,\n",
 			info->ch, ((s32)info->rssi * 100));
 
@@ -239,15 +240,15 @@ static void cfg_scan_result(enum scan_event scan_event,
 		}
 		//scan_idx = 0;
 		scan_finish = 1;
-		PRINT_INFO(priv->dev, CFG80211_DBG, "ifp= %p\n", ifp);
-		PRINT_INFO(priv->dev, CFG80211_DBG, "Scan Done 2\n")
+		PRINT_INFO(CFG80211_DBG, "ifp= %p\n", ifp);
+		PRINT_INFO(CFG80211_DBG, "Scan Done 2\n")
 		ieee80211_scan_msg(ifp);
 
 		pthread_mutex_unlock(&priv->scan_req_lock);
 	} else if (scan_event == SCAN_EVENT_ABORTED) {
 		pthread_mutex_lock(&priv->scan_req_lock);
 
-		PRINT_INFO(priv->dev, CFG80211_DBG, "Scan Aborted\n");
+		PRINT_INFO(CFG80211_DBG, "Scan Aborted\n");
 		if (priv->scan_req) {
 
 			//cfg80211_scan_done(priv->scan_req, false);
@@ -258,7 +259,7 @@ static void cfg_scan_result(enum scan_event scan_event,
 		pthread_mutex_unlock(&priv->scan_req_lock);
 	}
 
-	PRINT_INFO(priv->dev, CFG80211_DBG, "Scan Done 3\n")
+	PRINT_INFO(CFG80211_DBG, "Scan Done 3\n")
 }
 
 void cfg_connect_result(enum conn_event conn_disconn_evt,
@@ -273,7 +274,7 @@ void cfg_connect_result(enum conn_event conn_disconn_evt,
 	struct host_if_drv *wfi_drv = vif->hif_drv;
 	struct wilc_conn_info *conn_info = &wfi_drv->conn_info;
 	struct wilc_priv *priv = &vif->priv;
-	PRINT_INFO(vif->ndev, CFG80211_DBG,
+	PRINT_INFO(CFG80211_DBG,
 				   "cfg_connect_result\n");
 
 	vif->connecting = false;
@@ -281,7 +282,7 @@ void cfg_connect_result(enum conn_event conn_disconn_evt,
 	if (conn_disconn_evt == EVENT_CONN_RESP) {
 		u16 connect_status = conn_info->status;
 
-		PRINT_INFO(vif->ndev, CFG80211_DBG,
+		PRINT_INFO(CFG80211_DBG,
 			   "Connection response received=%d connect_stat[%d]\n",
 			   mac_status, connect_status);
 		if (mac_status == WILC_MAC_STATUS_DISCONNECTED &&
@@ -298,7 +299,7 @@ void cfg_connect_result(enum conn_event conn_disconn_evt,
 		}
 
 		if (connect_status == WLAN_STATUS_SUCCESS) {
-			PRINT_INFO(vif->ndev, CFG80211_DBG,
+			PRINT_INFO(CFG80211_DBG,
 				"Connection Successful: BSSID: %x%x%x%x%x%x\n",
 				conn_info->bssid[0], conn_info->bssid[1],
 				conn_info->bssid[2], conn_info->bssid[3],
@@ -309,10 +310,10 @@ void cfg_connect_result(enum conn_event conn_disconn_evt,
 			ieee80211_associate_msg(vif->wilc->sc_ic.ic_ifp, conn_info->bssid);
 		}
 
-		PRINT_INFO(vif->ndev, CFG80211_DBG,
+		PRINT_INFO(CFG80211_DBG,
 			   "Association request info elements length = %d\n",
 			   conn_info->req_ies_len);
-		PRINT_INFO(vif->ndev, CFG80211_DBG,
+		PRINT_INFO(CFG80211_DBG,
 			   "Association response info elements length = %d\n",
 			   conn_info->resp_ies_len);
 
@@ -329,7 +330,7 @@ void cfg_connect_result(enum conn_event conn_disconn_evt,
 		u16 reason = 0;
 		(void)reason; //TODO: reason
 
-		PRINT_INFO(vif->ndev, CFG80211_DBG,
+		PRINT_INFO(CFG80211_DBG,
 			 "Received WILC_MAC_STATUS_DISCONNECTED dev [%p]\n",
 			 priv->dev);
 		priv->p2p.local_random = 0x01;
@@ -430,7 +431,7 @@ static void wilc_wfi_cfg_parse_rx_vendor_spec(struct wilc_vif *vif, u8 *buff,
 			if (!memcmp(p2p_vendor_spec, &buff[i], 6)) {
 				priv->p2p.recv_random = buff[i + 6];
 				priv->p2p.is_wilc_ie = true;
-				PRINT_INFO(vif->ndev, GENERIC_DBG,
+				PRINT_INFO(GENERIC_DBG,
 					   "WILC Vendor specific IE:%02x\n",
 					   priv->p2p.recv_random);
 				break;
@@ -439,7 +440,7 @@ static void wilc_wfi_cfg_parse_rx_vendor_spec(struct wilc_vif *vif, u8 *buff,
 	}
 
 	if (priv->p2p.local_random <= priv->p2p.recv_random) {
-		PRINT_INFO(vif->ndev, GENERIC_DBG,
+		PRINT_INFO(GENERIC_DBG,
 			   "PEER WILL BE GO LocaRand=%02x RecvRand %02x\n",
 			   priv->p2p.local_random, priv->p2p.recv_random);
 		return;
@@ -491,7 +492,7 @@ int wilc_wfi_p2p_rx(struct wilc_vif *vif, u8 *buff, u32 size)
 		return true;
 	}
 
-	PRINT_D(vif->ndev, GENERIC_DBG, "Rx Frame Type:%x\n", fc);
+	PRINT_D(GENERIC_DBG, "Rx Frame Type:%x\n", fc);
 
 
 	//freq = ieee80211_channel_to_frequency(wl->op_ch, IEEE80211_BAND_2GHZ);
@@ -501,7 +502,7 @@ int wilc_wfi_p2p_rx(struct wilc_vif *vif, u8 *buff, u32 size)
 	//	return ret;
 	//}
 
-	PRINT_D(vif->ndev, GENERIC_DBG,
+	PRINT_D(GENERIC_DBG,
 		   "Rx Action Frame Type: %x %x\n",
 		   buff[ACTION_SUBTYPE_ID],
 		   buff[P2P_PUB_ACTION_SUBTYPE]);
@@ -516,13 +517,13 @@ int wilc_wfi_p2p_rx(struct wilc_vif *vif, u8 *buff, u32 size)
 
 		switch (buff[ACTION_SUBTYPE_ID]) {
 		case GAS_INITIAL_REQ:
-			PRINT_D(vif->ndev, GENERIC_DBG,
+			PRINT_D(GENERIC_DBG,
 				   "GAS INITIAL REQ %x\n",
 				   buff[ACTION_SUBTYPE_ID]);
 			break;
 
 		case GAS_INITIAL_RSP:
-			PRINT_D(vif->ndev, GENERIC_DBG,
+			PRINT_D(GENERIC_DBG,
 				   "GAS INITIAL RSP %x\n",
 				   buff[ACTION_SUBTYPE_ID]);
 			break;
@@ -552,7 +553,7 @@ int wilc_wfi_p2p_rx(struct wilc_vif *vif, u8 *buff, u32 size)
 int scan(struct wilc_vif *vif, struct cfg80211_scan_request *request)
 {
 	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] In\n", __func__);
-			PRINT_D(vif->ndev, CFG80211_DBG,
+			PRINT_D(CFG80211_DBG,
 				"[%s] In",
 				__func__);
 
@@ -576,20 +577,19 @@ int scan(struct wilc_vif *vif, struct cfg80211_scan_request *request)
 
 		scan_ch_list[i] = (u8)ieee80211_mhz2ieee(freq, IEEE80211_CHAN_2GHZ);
 
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"ScanChannel List[%d] = %d\n", i, scan_ch_list[i]);
-		PRINT_D(vif->ndev, CFG80211_DBG,
+		PRINT_D(CFG80211_DBG,
 			"ScanChannel List[%d] = %d",
 			i, scan_ch_list[i]);
 	}
 
-	PRINT_INFO(vif->ndev, CFG80211_DBG, "Requested num of channel %d\n",
+	PRINT_INFO(CFG80211_DBG, "Requested num of channel %d\n",
 		   request->n_channels);
-	PRINT_INFO(vif->ndev, CFG80211_DBG, "Scan Request IE len =  %d\n",
+	PRINT_INFO(CFG80211_DBG, "Scan Request IE len =  %d\n",
 		   request->ie_len);
-	PRINT_INFO(vif->ndev, CFG80211_DBG, "Number of SSIDs %d\n",
+	PRINT_INFO(CFG80211_DBG, "Number of SSIDs %d\n",
 		   request->n_ssids);
 
-	PRINT_INFO(vif->ndev, CFG80211_DBG,
+	PRINT_INFO(CFG80211_DBG,
 		   "Trigger Scan Request\n");
 
 	if (request->n_ssids)

@@ -45,7 +45,7 @@ void wilc_mac_indicate(struct wilc_dev *wilc)
 void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 		       u32 pkt_offset, u8 status)
 {
-	slogf(_SLOGC_NETWORK, _SLOG_INFO,"[%s] In, size = %d pkt_offset = %d \n", __func__, size, pkt_offset);
+	PRINT_D(RX_DBG, "[%s] In, size = %d pkt_offset = %d \n", __func__, size, pkt_offset);
 	//fprintf(stderr,"[%s] In, size = %d pkt_offset = %d \n", __func__, size, pkt_offset);
 	unsigned int frame_len = 0;
 	//int stats;
@@ -166,12 +166,52 @@ void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 
 
 # if 0
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log2\n", __func__);
+	int j = 0;
+	//ifp = wilc->sc_ic.ic_ifp;
+	ifp = &wilc->sc_ec.ec_if;
 
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log3\n", __func__);
-	ifp = wilc->sc_ic.ic_ifp;
-	//ifp = &wilc->sc_ec.ec_if;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log4\n", __func__);
+
+	m = m_getcl_wtp(M_DONTWAIT, MT_DATA, M_PKTHDR, WTP);
+
+	if (!m) {
+		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] cannot get mbuf...\n", __func__);
+		fprintf(stderr,"[%s] cannot get mbuf...\n", __func__);
+		ifp->if_ierrors++;  // for ifconfig -v
+		return;
+		//return 1;
+	}
+
+	m->m_pkthdr.len = size;
+	m->m_len = size;
+
+	memcpy(m->m_hdr.mh_data, buff, m->m_pkthdr.len);
+
+	///m_copyback(m, 0, pkt->size, pkt->buf);
+
+	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] size = %d, mh_len = %d \n", __func__, m->m_pkthdr.len, m->m_hdr.mh_len);
+	//fprintf(stderr,"[%s] size = %d, mh_len = %d \n", __func__, m->m_pkthdr.len, m->m_hdr.mh_len);
+
+	if (m->m_hdr.mh_len > 40)
+	{
+		for (j = 0; j<3; j++)
+			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"buf = 0x%x  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x \n", m->m_hdr.mh_data[9*j], m->m_hdr.mh_data[9*j+1], m->m_hdr.mh_data[9*j+2], m->m_hdr.mh_data[9*j+3], m->m_hdr.mh_data[9*j+4], m->m_hdr.mh_data[9*j+5], m->m_hdr.mh_data[9*j+6], m->m_hdr.mh_data[9*j+7], m->m_hdr.mh_data[9*j+8]);
+	}
+	// ip_input() needs this
+	m->m_pkthdr.rcvif = ifp;
+
+	ifp->if_ipackets++; // for ifconfig -v
+	//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log1 \n", __func__);
+
+#if NBPFILTER > 0
+	if (ifp->if_bpf)
+		bpf_mtap(ifp->if_bpf, m);
+#endif
+
+	(*ifp->if_input)(ifp, m);
+
+
+
+#if 0
 	//m = create_ptr(sizeof(struct mbuf));
 	m = m_getcl_wtp(M_DONTWAIT, MT_DATA, M_PKTHDR, WTP);
 	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log5\n", __func__);
@@ -190,7 +230,7 @@ void wilc_frmw_to_host(struct wilc_vif *vif, u8 *buff, u32 size,
 	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log9\n", __func__);
 	(*ifp->if_input)(ifp, m);
 	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log10\n", __func__);
-
+#endif
 
 	//free_ptr(m);
 #endif
@@ -314,7 +354,7 @@ void wilc_wlan_set_bssid(struct wilc_vif *vif, u8 *bssid, u8 mode)
 				ether_addr_copy(vif->bssid, bssid);
 			else
 				eth_zero_addr(vif->bssid);
-			PRINT_INFO(vif->ndev, GENERIC_DBG,
+			PRINT_INFO(GENERIC_DBG,
 				   "set bssid [%pM]\n", vif->bssid);
 			//fprintf(stderr,"[%s] set bssid [%pM]\n", __func__, vif->bssid);
 			vif->iftype = mode;
@@ -496,7 +536,8 @@ static int pkt_rx_task(void *vp)
 
 			if (!m) {
 				ifp->if_ierrors++;  // for ifconfig -v
-				return 1;
+				continue;
+				//return 1;
 			}
 
 			m->m_pkthdr.len = pkt->size;
@@ -506,11 +547,14 @@ static int pkt_rx_task(void *vp)
 
 			///m_copyback(m, 0, pkt->size, pkt->buf);
 
-			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] size = %d, mh_len = %d \n", __func__, m->m_pkthdr.len, m->m_hdr.mh_len);
+			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] size = %d, mh_len = %d \n", __func__, m->m_pkthdr.len, m->m_hdr.mh_len);
 			//fprintf(stderr,"[%s] size = %d, mh_len = %d \n", __func__, m->m_pkthdr.len, m->m_hdr.mh_len);
 
-			//for (j = 0; j<3; j++)
-			//	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"buf = 0x%x  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x \n", m->m_hdr.mh_data[9*j], m->m_hdr.mh_data[9*j+1], m->m_hdr.mh_data[9*j+2], m->m_hdr.mh_data[9*j+3], m->m_hdr.mh_data[9*j+4], m->m_hdr.mh_data[9*j+5], m->m_hdr.mh_data[9*j+6], m->m_hdr.mh_data[9*j+7], m->m_hdr.mh_data[9*j+8]);
+			if (m->m_hdr.mh_len > 40)
+			{
+				for (j = 0; j<3; j++)
+					slogf(_SLOGC_NETWORK, _SLOG_ERROR,"buf = 0x%x  0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x \n", m->m_hdr.mh_data[9*j], m->m_hdr.mh_data[9*j+1], m->m_hdr.mh_data[9*j+2], m->m_hdr.mh_data[9*j+3], m->m_hdr.mh_data[9*j+4], m->m_hdr.mh_data[9*j+5], m->m_hdr.mh_data[9*j+6], m->m_hdr.mh_data[9*j+7], m->m_hdr.mh_data[9*j+8]);
+			}
 			// ip_input() needs this
 			m->m_pkthdr.rcvif = ifp;
 
@@ -549,11 +593,11 @@ static int pkt_rx_task(void *vp)
 			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] size = %d, buf = 0x%x  0x%x 0x%x 0x%x 0x%x 0x%x\n", __func__, m->m_pkthdr.len, m->m_hdr.mh_data[0], m->m_hdr.mh_data[1], m->m_hdr.mh_data[2], m->m_hdr.mh_data[3], m->m_hdr.mh_data[4], m->m_hdr.mh_data[5]);
 			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"last buf = 0x%x  0x%x 0x%x 0x%x 0x%x 0x%x\n",  m->m_hdr.mh_data[336], m->m_hdr.mh_data[337], m->m_hdr.mh_data[338], m->m_hdr.mh_data[339], m->m_hdr.mh_data[340], m->m_hdr.mh_data[341]);
 
-			pthread_mutex_unlock(&wl->rx_mutex);
 			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log21 \n", __func__);
 			list_del(&pkt->list);
 			free_ptr(pkt->buf);
 			free_ptr(pkt);
+			pthread_mutex_unlock(&wl->rx_mutex);
 			//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log2 \n", __func__);
 		} else {
 			pthread_mutex_unlock(&wl->rx_mutex);
@@ -592,14 +636,13 @@ static int wilc_txq_task(void *vp)
 
 
 		//wait_for_completion(&wl->txq_event);
-
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"txq_task Taking a nap\n");
+		PRINT_INFO(TX_DBG, "txq_task Taking a nap\n");
 		if (pthread_cond_wait(&wl->txq_event, &wl->txq_event_mutex) != EOK){
 		//if (pthread_sleepon_wait(&wl->txq_event) != EOK) {
 			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] Wait fail \n", __func__);
 		}
 
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"txq_task Who waked me up\n");
+		PRINT_INFO(TX_DBG, "txq_task Who waked me up\n");
 
 		if (wl->close) {
 
@@ -619,7 +662,7 @@ static int wilc_txq_task(void *vp)
 			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"TX thread stopped\n");
 			break;
 		}
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"handle the tx packet\n");
+		PRINT_INFO(TX_DBG, "handle the tx packet\n");
 		do {
 			ret = wilc_wlan_handle_txq(wl, &txq_count);
 			if (txq_count < FLOW_CTRL_LOW_THRESHLD) {
@@ -627,7 +670,7 @@ static int wilc_txq_task(void *vp)
 				int srcu_idx;
 
 				srcu_idx = srcu_read_lock(&wl->srcu);
-				slogf(_SLOGC_NETWORK, _SLOG_ERROR,"Waking up queue\n");
+				PRINT_INFO(TX_DBG, "Waking up queue\n");
 				//list_for_each_entry_rcu(ifc, &wl->vif_list,
 				//			list) {
 				list_for_each_entry(ifc, &wl->vif_list,
@@ -779,46 +822,45 @@ int wilc_init_fw_config(struct wilc_dev *dev, struct wilc_vif *vif)
 	if (!cfg_set(vif, 1, WID_SET_OPERATION_MODE, (u8 *)&w, 4, 0, 0))
 		goto fail;
 
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log1\n", __func__);
 	b = WILC_FW_BSS_TYPE_INFRA;
 	if (!cfg_set(vif, 0, WID_BSS_TYPE, &b, 1, 0, 0))
 		goto fail;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log2\n", __func__);
+
 	b = WILC_FW_TX_RATE_AUTO;
 	if (!cfg_set(vif, 0, WID_CURRENT_TX_RATE, &b, 1, 0, 0))
 		goto fail;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log3\n", __func__);
+
 	b = WILC_FW_OPER_MODE_G_MIXED_11B_2;
 	if (!cfg_set(vif, 0, WID_11G_OPERATING_MODE, &b, 1, 0,
 			       0))
 		goto fail;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log4\n", __func__);
+
 	b = WILC_FW_PREAMBLE_AUTO;
 	if (!cfg_set(vif, 0, WID_PREAMBLE, &b, 1, 0, 0))
 		goto fail;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log5\n", __func__);
+
 	b = WILC_FW_11N_PROT_AUTO;
 	if (!cfg_set(vif, 0, WID_11N_PROT_MECH, &b, 1, 0, 0))
 		goto fail;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log6\n", __func__);
+
 	b = WILC_FW_ACTIVE_SCAN;
 	if (!cfg_set(vif, 0, WID_SCAN_TYPE, &b, 1, 0, 0))
 		goto fail;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log7\n", __func__);
+
 	b = WILC_FW_SITE_SURVEY_OFF;
 	if (!cfg_set(vif, 0, WID_SITE_SURVEY, &b, 1, 0, 0))
 		goto fail;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log8\n", __func__);
+
 	hw = 0xffff;
 	//cpu_to_le16s(&hw);
 	if (!cfg_set(vif, 0, WID_RTS_THRESHOLD, (u8 *)&hw, 2, 0, 0))
 		goto fail;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log9\n", __func__);
+
 	hw = 2346;
 	//cpu_to_le16s(&hw);
 	if (!cfg_set(vif, 0, WID_FRAG_THRESHOLD, (u8 *)&hw, 2, 0, 0))
 		goto fail;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] log10\n", __func__);
+
 	b = 0;
 	if (!cfg_set(vif, 0, WID_BCAST_SSID, &b, 1, 0, 0))
 		goto fail;
@@ -944,9 +986,9 @@ static void wlan_deinitialize_threads(struct wilc_vif *vif)
 	//struct wilc_vif *vif = netdev_priv(dev);
 	struct wilc_dev *wl = vif->wilc;
 
-	PRINT_INFO(vif->ndev, INIT_DBG, "Deinitializing Threads\n");
+	PRINT_INFO(INIT_DBG, "Deinitializing Threads\n");
 	if (!recovery_on) {
-		PRINT_INFO(vif->ndev, INIT_DBG, "Deinit debug Thread\n");
+		PRINT_INFO(INIT_DBG, "Deinit debug Thread\n");
 		debug_running = false;
 		//if (&wl->debug_thread_started)
 		{
@@ -962,7 +1004,7 @@ static void wlan_deinitialize_threads(struct wilc_vif *vif)
 	}
 
 	wl->close = 1;
-	PRINT_INFO(vif->ndev, INIT_DBG, "Deinitializing Threads\n");
+	PRINT_INFO(INIT_DBG, "Deinitializing Threads\n");
 
 	pthread_mutex_lock(&wl->txq_event_mutex);
 	pthread_cond_signal(&wl->txq_event);
@@ -981,16 +1023,16 @@ static void wilc_wlan_deinitialize(struct wilc_vif *vif)
 	struct wilc_dev *wl = vif->wilc;
 
 	if (wl->initialized) {
-		PRINT_INFO(vif->ndev, INIT_DBG, "Deinitializing wilc  ...\n");
+		PRINT_INFO(INIT_DBG, "Deinitializing wilc  ...\n");
 
 		if (!wl) {
 			PRINT_ER(dev, "wl is NULL\n");
 			return;
 		}
 
-		PRINT_D(vif->ndev, INIT_DBG, "destroy aging timer\n");
+		PRINT_D(INIT_DBG, "destroy aging timer\n");
 
-		PRINT_INFO(vif->ndev, INIT_DBG, "Disabling IRQ\n");
+		PRINT_INFO(INIT_DBG, "Disabling IRQ\n");
 		if (wl->io_type == WILC_HIF_SPI ||
 			wl->io_type == WILC_HIF_SDIO_GPIO_IRQ) {
 			///wilc_disable_irq(wl, 1);
@@ -1002,23 +1044,23 @@ static void wilc_wlan_deinitialize(struct wilc_vif *vif)
 			}
 		}
 
-		PRINT_INFO(vif->ndev, INIT_DBG, "Deinitializing Threads\n");
+		PRINT_INFO(INIT_DBG, "Deinitializing Threads\n");
 		wlan_deinitialize_threads(vif);
-		PRINT_INFO(vif->ndev, INIT_DBG, "Deinitializing IRQ\n");
+		PRINT_INFO(INIT_DBG, "Deinitializing IRQ\n");
 		///deinit_irq(dev);
 
 		ret = wilc_wlan_stop(wl, vif);
 		if (ret != 0)
 			PRINT_ER(dev, "failed in wlan_stop\n");
 
-		PRINT_INFO(vif->ndev, INIT_DBG, "Deinitializing WILC Wlan\n");
+		PRINT_INFO(INIT_DBG, "Deinitializing WILC Wlan\n");
 		wilc_wlan_cleanup(vif);
 
 		wl->initialized = false;
 
-		PRINT_INFO(dev, INIT_DBG, "wilc deinitialization Done\n");
+		PRINT_INFO(INIT_DBG, "wilc deinitialization Done\n");
 	} else {
-		PRINT_INFO(dev, INIT_DBG, "wilc is not initialized\n");
+		PRINT_INFO(INIT_DBG, "wilc is not initialized\n");
 	}
 }
 
@@ -1105,7 +1147,7 @@ static int wilc_wlan_initialize(struct wilc_vif *vif)
 			PRINT_ER(dev, "Initializing WILC_Wlan FAILED\n");
 			return -EIO;
 		}
-		PRINT_INFO(vif->ndev, GENERIC_DBG,
+		PRINT_INFO(GENERIC_DBG,
 			   "WILC Initialization done\n");
 
 		ret = wlan_initialize_threads(wl);
@@ -1159,7 +1201,7 @@ static int wilc_wlan_initialize(struct wilc_vif *vif)
 						     (uint8_t *)firmware_ver,
 						     sizeof(firmware_ver));
 			firmware_ver[size] = '\0';
-			PRINT_INFO(dev, INIT_DBG, "WILC Firmware Ver = %s\n",
+			PRINT_INFO(INIT_DBG, "WILC Firmware Ver = %s\n",
 				   firmware_ver);
 
 			printf("WILC Firmware Ver = %s\n", firmware_ver);
@@ -1190,7 +1232,7 @@ fail_wilc_wlan:
 		wilc_wlan_cleanup(vif);
 		PRINT_ER(dev, "WLAN initialization FAILED\n");
 	} else {
-		PRINT_INFO(vif->ndev, INIT_DBG, "wilc already initialized\n");
+		PRINT_INFO(INIT_DBG, "wilc already initialized\n");
 	}
 	return ret;
 }
@@ -1207,7 +1249,7 @@ int wilc_mac_open(struct wilc_vif *vif, unsigned char mac_add[])
 		return -ENODEV;
 	}
 
-	PRINT_INFO(ndev, INIT_DBG, "MAC OPEN[]\n");
+	PRINT_INFO(INIT_DBG, "MAC OPEN[]\n");
 
 	//if (wl->open_ifcs == 0)
 		//wilc_bt_power_up(wl, DEV_WIFI);
@@ -1221,7 +1263,7 @@ int wilc_mac_open(struct wilc_vif *vif, unsigned char mac_add[])
 	//	}
 	//}
 
-	PRINT_INFO(vif->ndev, INIT_DBG, "*** re-init ***\n");
+	PRINT_INFO(INIT_DBG, "*** re-init ***\n");
 	ret = wilc_wlan_initialize(vif);
 	if (ret < 0) {
 		PRINT_ER(ndev, "Failed to initialize wilc\n");
@@ -1265,7 +1307,7 @@ int wilc_mac_close(struct wilc_vif *vif)
 	//struct wilc_vif *vif = netdev_priv(ndev);
 	struct wilc_dev *wl = vif->wilc;
 
-	PRINT_INFO(vif->ndev, GENERIC_DBG, "Mac close\n");
+	PRINT_INFO(GENERIC_DBG, "Mac close\n");
 
 	if (wl->open_ifcs > 0) {
 		wl->open_ifcs--;
@@ -1284,7 +1326,7 @@ int wilc_mac_close(struct wilc_vif *vif)
 	//}
 
 	if (wl->open_ifcs == 0) {
-		PRINT_INFO(ndev, GENERIC_DBG, "Deinitializing wilc\n");
+		PRINT_INFO(GENERIC_DBG, "Deinitializing wilc\n");
 		wl->close = 1;
 
 		wilc_wlan_deinitialize(vif);
@@ -1381,7 +1423,7 @@ void wilc_netdev_cleanup(struct wilc_dev *wilc)
 	//wiphy_unregister(wilc->wiphy);
 	//pr_info("Freeing wiphy\n");
 	//wiphy_free(wilc->wiphy);
-	PRINT_INFO(ndev, GENERIC_DBG, "Module_exit Done.\n");
+	PRINT_INFO(GENERIC_DBG, "Module_exit Done.\n");
 }
 
 

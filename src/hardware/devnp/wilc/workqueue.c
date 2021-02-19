@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include "workqueue.h"
 #include "wilc_utilities.h"
+#include "type_defs.h"
 
 
 struct workqueue_struct *test_wq = NULL;
@@ -17,8 +18,8 @@ void workqueue_handler(void *data)
 	//ssize_t bytes_read;
 	struct work_struct *work;
 	//struct host_if_msg *msg;
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s]  workqueue = %p list = %p\n", __func__, workqueue, &workqueue->list);
 
+	PRINT_INFO(GENERIC_DBG, "[%s]  workqueue = %p list = %p\n", __func__, workqueue, &workqueue->list);
 	while (1)
 	{
 
@@ -28,14 +29,14 @@ void workqueue_handler(void *data)
 			//printf("Enter...\r\n");
 			//int transmit_pwr_mode;
 			//scanf("%d",&transmit_pwr_mode);
-			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] have data\n", __func__);
+			PRINT_D(GENERIC_DBG, "[%s]  have data\n", __func__);
 			work = list_first_entry(&workqueue->list, struct work_struct, entry);
 			//msg = container_of(work, struct host_if_msg, work);
-			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] work =%p\n", __func__, work);
+			PRINT_D(GENERIC_DBG, "[%s]  work =%p\n", __func__, work);
 			work->func(work);
-			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] quit fn\n", __func__);
+			PRINT_D(GENERIC_DBG, "[%s]  quit fn\n", __func__);
 			list_del(&work->entry);
-			slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s] delete entry\n", __func__);
+			PRINT_D(GENERIC_DBG, "[%s]  delete entry\n", __func__);
 		}
 		usleep(10);
 
@@ -122,12 +123,11 @@ int queue_work(struct workqueue_struct *wq, struct work_struct *work)
 	//unsigned int prio = 0;
 	int ret = 0;
 
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR, "[%s]  workqueue = %p, work = %p, wq->list = %p", __func__, wq, work, &wq->list);
+	PRINT_D(GENERIC_DBG, "[%s]  workqueue = %p, work = %p, wq->list = %p\n", __func__, wq, work, &wq->list);
 
 	list_add_tail(&work->entry,&wq->list);
 
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s]  wq->list.next = %p\n", __func__, wq->list.next);
-
+	PRINT_D(GENERIC_DBG, "[%s] wq->list.next = %p\n", __func__, wq->list.next);
 	//ret = mq_send(wq->queue, (char*) work, sizeof(struct work_struct), prio);
 	//ret = mq_send(wq->queue, "Hello Test", 10, prio);
 	//slogf(_SLOGC_NETWORK, _SLOG_ERROR,"[%s]  ret = %d, error=%d\n", __func__, ret, errno);

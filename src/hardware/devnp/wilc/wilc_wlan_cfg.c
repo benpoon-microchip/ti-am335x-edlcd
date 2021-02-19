@@ -429,7 +429,7 @@ int cfg_get_val(struct wilc_dev *wl, uint16_t wid, uint8_t *buffer, uint32_t buf
 void cfg_indicate_rx(struct wilc_dev *wilc, uint8_t *frame, int size,
 		     struct wilc_cfg_rsp *rsp)
 {
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: In\n", __func__);
+	PRINT_D(RX_DBG, "%s: In\n", __func__);
 	uint8_t msg_type;
 	uint8_t msg_id;
 
@@ -446,43 +446,44 @@ void cfg_indicate_rx(struct wilc_dev *wilc, uint8_t *frame, int size,
 	 * 'N' (Network Information)
 	 */
 	//fprintf(stderr, "[cfg_indicate_rx] log1\r\n");
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: log2\n", __func__);
 	switch (msg_type) {
 	case 'R':
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: R\n", __func__);
+		PRINT_INFO(RX_DBG, "%s: R\n", __func__);
 		wilc_wlan_parse_response_frame(wilc, frame, size);
 		rsp->type = WILC_CFG_RSP;
 		rsp->seq_no = msg_id;
 		break;
 
 	case 'I':
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: I\n", __func__);
+		PRINT_INFO(RX_DBG, "%s: I\n", __func__);
 		wilc_wlan_parse_info_frame(wilc, frame);
 		rsp->type = WILC_CFG_RSP_STATUS;
 		rsp->seq_no = msg_id;
 		/*call host interface info parse as well*/
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: Info message received\n", __func__);
+		PRINT_INFO(RX_DBG, "%s: Info message received\n", __func__);
 		wilc_gnrl_async_info_received(wilc, frame - 4, size + 4);
 		break;
 
 	case 'N':
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: N\n", __func__);
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: New Network Notification Received\n", __func__);
+		PRINT_INFO(RX_DBG, "%s: N\n", __func__);
+		PRINT_INFO(RX_DBG, "%s: New Network Notification Received\n", __func__);
 		wilc_network_info_received(wilc, frame - 4, size + 4);
 		break;
 
 	case 'S':
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: Scan Notification Received\n", __func__);
+		PRINT_INFO(RX_DBG, "%s: Scan Notification Received\n", __func__);
 		wilc_scan_complete_received(wilc, frame - 4, size + 4);
 		break;
 
 	default:
 		fprintf(stderr, "[cfg_indicate_rx] log2, unknown message\r\n");
-		slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: Receive unknown message 0x%x-0x%x-0x%x-0x%x-0x%x-0x%x-0x%x-0x%x\n", __func__, frame[0], frame[1], frame[2], frame[3],frame[4], frame[5], frame[6], frame[7]);
+		PRINT_INFO(RX_DBG, "%s: unknown message\n", __func__);
+		PRINT_INFO(RX_DBG, "%s: Receive unknown message 0x%x-0x%x-0x%x-0x%x-0x%x-0x%x-0x%x-0x%x\n", __func__, frame[0], frame[1], frame[2], frame[3],frame[4], frame[5], frame[6], frame[7]);
 		rsp->seq_no = msg_id;
 		break;
 	}
-	slogf(_SLOGC_NETWORK, _SLOG_ERROR,"%s: Out\n", __func__);
+
+	PRINT_D(RX_DBG, "%s: Out\n", __func__);
 }
 
 int cfg_init(struct wilc_dev *wl)

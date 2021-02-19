@@ -32,21 +32,26 @@
 
 #define cpu_to_le16
 #define cpu_to_le32
+//#define DEBUG
 
 #define min_t(type, x, y) ({			\
 	type __min1 = (x);			\
 	type __min2 = (y);			\
 	__min1 < __min2 ? __min1: __min2; })
 
-
-#define PRINT_INFO(netdev, region, format, ...) \
+#ifdef DEBUG
+#define PRINT_INFO(region, format, ...) \
 		slogf(_SLOGC_NETWORK, _SLOG_INFO, "[INFO] "format, ##__VA_ARGS__);
+#else
+#define PRINT_INFO(region, format, ...)
+#endif
 
-
-
-#define PRINT_D(netdev, region, format, ...) \
+#ifdef DEBUG
+#define PRINT_D(region, format, ...) \
 		slogf(_SLOGC_NETWORK, _SLOG_INFO, "[DBG] "format, ##__VA_ARGS__);
-
+#else
+#define PRINT_D(region, format, ...)
+#endif
 
 #define PRINT_ER(netdev, format, ...) \
 		slogf(_SLOGC_NETWORK, _SLOG_ERROR, "[ERROR] "format, ##__VA_ARGS__);
